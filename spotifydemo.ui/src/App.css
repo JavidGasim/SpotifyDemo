@@ -1,0 +1,40 @@
+#root {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+.main-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #000000, #18181b);
+  color: white;
+}
+
+.animation-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 80px);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
