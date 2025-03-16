@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Navbar from "../MusicAnimation/Navbar";
 import "../Register/Register.css";
 import { useNavigate } from "react-router-dom";
@@ -21,12 +21,16 @@ export default function Register() {
   const [role, setRole] = useState("");
 
   const [data, setData] = useState({
-    userName: username,
-    name: name,
-    surName: surname,
-    email: email,
-    password: password,
+    userName: "",
+    name: "",
+    surName: "",
+    email: "",
+    password: "",
   });
+
+  useEffect(() => {
+    setData({ userName: username, name, surName: surname, email, password });
+  }, [username, name, surname, email, password]);
 
   const navigate = useNavigate();
 
@@ -35,6 +39,15 @@ export default function Register() {
     // Handle sign up logic here
     console.log("Sign up attempt with:", {
       username,
+      name,
+      surname,
+      profileImage,
+      email,
+      password,
+      role,
+    });
+    console.log("Sign up attempt with:", {
+      data,
       name,
       surname,
       profileImage,
@@ -144,7 +157,7 @@ export default function Register() {
       email: data.email,
       password: data.password,
       imagePath: imageUrl,
-      role: "Client",
+      role: role,
     };
 
     axios
@@ -185,10 +198,10 @@ export default function Register() {
               className="image-preview"
               onClick={triggerFileInput}
               style={{
-                backgroundImage: imagePreview ? `url(${imagePreview})` : "none",
+                backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
               }}
             >
-              {!imagePreview && (
+              {!imageUrl && (
                 <div className="upload-placeholder">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -232,9 +245,7 @@ export default function Register() {
               className="file-input"
             />
             <p className="upload-text">
-              {imagePreview
-                ? "Change profile picture"
-                : "Upload profile picture"}
+              {imageUrl ? "Change profile picture" : "Upload profile picture"}
             </p>
           </div>
 

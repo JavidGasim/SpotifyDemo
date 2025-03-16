@@ -1,18 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../Login/Login.css";
 import Navbar from "../MusicAnimation/Navbar";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [data, setData] = useState({
+    userName: "",
+    password: "",
+  });
+
+  useEffect(() => {
+    setData({ userName: username, password });
+  }, [username, password]);
+
   const navigate = useNavigate();
+  var generalUrl = "https://localhost:5002/";
+
+  function LoginUser() {
+    var url = generalUrl + "login";
+    var obj = {
+      userName: data.userName,
+      password: data.password,
+    };
+
+    // alert(data.userName);
+    // alert(data.password);
+
+    axios
+      .post(url, obj)
+      .then((response) => {
+        // alert("Login is Successfully");
+        Cookies.set(data.userName, response.data.token, { expires: 30 });
+        Cookies.set("username", data.userName, { expires: 30 });
+        // var username = Cookies.get("username");
+        // var token = Cookies.get(username);
+        // alert(username,token)
+        // CurrentUser();
+        navigate("/");
+      })
+      .catch((error) => {
+        alert("Not found User!");
+      });
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Sign in attempt with:", { username, password });
+    LoginUser();
   };
 
   return (
