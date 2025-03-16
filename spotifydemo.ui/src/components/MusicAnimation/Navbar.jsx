@@ -8,13 +8,20 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="logo-container">
-        <h1 className="logo">Spotify</h1>
+        <h1 className="logo" onClick={() => navigate("/")}>
+          Spotify
+        </h1>
       </div>
       <div className="auth-buttons">
         <button className="sign-in-button" onClick={() => navigate("/login")}>
           Sign In
         </button>
-        <button className="sign-up-button">Sign Up</button>
+        <button
+          className="sign-up-button"
+          onClick={() => navigate("/register")}
+        >
+          Sign Up
+        </button>
       </div>
     </nav>
   );

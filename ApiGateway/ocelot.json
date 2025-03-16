@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/v1/account/existUser",
+      "DownstreamPathTemplate": "/api/account/existUser",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -13,7 +13,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/account/register",
+      "DownstreamPathTemplate": "/api/account/register",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -25,7 +25,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/account/login",
+      "DownstreamPathTemplate": "/api/account/login",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -37,7 +37,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/account/currentUser",
+      "DownstreamPathTemplate": "/api/account/currentUser",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -49,7 +49,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/image/newImage",
+      "DownstreamPathTemplate": "/api/image/newImage",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -61,7 +61,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/image/musicNewImage",
+      "DownstreamPathTemplate": "/api/image/musicNewImage",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -73,7 +73,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/uploadAudio",
+      "DownstreamPathTemplate": "/api/music/uploadAudio",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -85,7 +85,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/newAudio",
+      "DownstreamPathTemplate": "/api/music/newAudio",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -97,7 +97,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/allAudios",
+      "DownstreamPathTemplate": "/api/music/allAudios",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -109,7 +109,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/userAllAudios/{userId}",
+      "DownstreamPathTemplate": "/api/music/userAllAudios/{userId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -121,7 +121,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/downloadAudio/{id}",
+      "DownstreamPathTemplate": "/api/music/downloadAudio/{id}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -133,7 +133,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/newFavAudio",
+      "DownstreamPathTemplate": "/api/music/newFavAudio",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -145,7 +145,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/removeFavAudio",
+      "DownstreamPathTemplate": "/api/music/removeFavAudio",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -157,7 +157,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/allFavAudios",
+      "DownstreamPathTemplate": "/api/music/allFavAudios",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -169,7 +169,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/newComment",
+      "DownstreamPathTemplate": "/api/music/newComment",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -181,7 +181,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/allComments/{audioId}",
+      "DownstreamPathTemplate": "/api/music/allComments/{audioId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -193,7 +193,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/likeCount/{audioId}",
+      "DownstreamPathTemplate": "/api/music/likeCount/{audioId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -205,7 +205,7 @@
       "UpstreamHttpMethod": [ "Put" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/playList",
+      "DownstreamPathTemplate": "/api/music/playList",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -217,7 +217,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/allPlayLists",
+      "DownstreamPathTemplate": "/api/music/allPlayLists",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -229,7 +229,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/playListAudios",
+      "DownstreamPathTemplate": "/api/music/playListAudios",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -241,7 +241,7 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/api/v1/music/playListId",
+      "DownstreamPathTemplate": "/api/music/playListId",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
