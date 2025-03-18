@@ -1,50 +1,75 @@
 import { useState, useRef, useEffect } from "react";
 import "../Artist/Artist.css";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+import axios from "axios";
 export default function Artist() {
   // Artist profile data
   const [artist, setArtist] = useState({
-    name: "Sarah Johnson",
-    artistName: "Lunar Echo",
-    profileImage: "/placeholder.svg?height=150&width=150",
-    coverImage: "/placeholder.svg?height=400&width=1200",
-    followers: 1248,
-    bio: "Electronic music producer and vocalist creating dreamy soundscapes with a mix of synth-wave and ambient elements.",
+    email: "",
+    id: "",
+    imagepath: "",
+    name: "",
+    surname: "",
+    username: "",
   });
 
-  // Songs data
-  const [songs, setSongs] = useState([
-    {
-      id: 1,
-      title: "Midnight Dreams",
-      duration: 214,
-      plays: 12453,
-      likes: 843,
-      releaseDate: "2023-11-15",
-      coverArt: "/placeholder.svg?height=80&width=80",
-      audioFile: null,
-    },
-    {
-      id: 2,
-      title: "Stellar Journey",
-      duration: 187,
-      plays: 8721,
-      likes: 562,
-      releaseDate: "2023-09-22",
-      coverArt: "/placeholder.svg?height=80&width=80",
-      audioFile: null,
-    },
-    {
-      id: 3,
-      title: "Neon Lights",
-      duration: 243,
-      plays: 15632,
-      likes: 1204,
-      releaseDate: "2023-07-08",
-      coverArt: "/placeholder.svg?height=80&width=80",
-      audioFile: null,
-    },
-  ]);
+  const [audios, setAudios] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  var generalUrl = "https://localhost:5002/";
+
+  async function CurrentUser() {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+    const url = generalUrl + `currentUser`;
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // setUser(response.data.user);
+        console.log(response.data);
+        setArtist(response.data.user);
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
+  async function AllAudios() {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+
+    try {
+      setLoading(true);
+      const url = generalUrl + `userAllAudios/${artist.id}`;
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAudios(response.data.audios);
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to fetch audios");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    CurrentUser();
+  }, []);
+
+  useEffect(() => {
+    if (artist.id) {
+      AllAudios();
+    }
+  }, [artist]);
+
+  useEffect(() => {
+    console.log("Updated Artist:", artist);
+  }, [artist]);
 
   // Player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -78,7 +103,7 @@ export default function Artist() {
       setIsPlaying(true);
       // In a real app, you would load the audio file here
       // For now, we'll just simulate playback
-      setDuration(songs.find((song) => song.id === songId).duration);
+      setDuration(audios.find((song) => song.id === songId).duration);
       setCurrentTime(0);
       // If we had actual audio:
       // audioRef.current.src = song.audioUrl
@@ -200,10 +225,10 @@ export default function Artist() {
         audioFile: formData.audioFile,
       };
 
-      setSongs([...songs, newSong]);
+      setAudios([...audios, newSong]);
     } else if (showEditForm) {
       // Update existing song
-      const updatedSongs = songs.map((song) => {
+      const updatedSongs = audios.map((song) => {
         if (song.id === formData.id) {
           return {
             ...song,
@@ -216,7 +241,7 @@ export default function Artist() {
         return song;
       });
 
-      setSongs(updatedSongs);
+      setAudios(updatedSongs);
     }
 
     closeForm();
@@ -225,8 +250,8 @@ export default function Artist() {
   // Delete a song
   const deleteSong = (songId) => {
     if (window.confirm("Are you sure you want to delete this song?")) {
-      const updatedSongs = songs.filter((song) => song.id !== songId);
-      setSongs(updatedSongs);
+      const updatedSongs = audios.filter((song) => song.id !== songId);
+      setAudios(updatedSongs);
 
       if (currentSongId === songId) {
         setIsPlaying(false);
@@ -310,12 +335,12 @@ export default function Artist() {
             <div className="artist-profile">
               <div className="artist-avatar">
                 <img
-                  src={artist.profileImage || "/placeholder.svg"}
-                  alt={artist.artistName}
+                  src={artist.imagePath || "/placeholder.svg"}
+                  alt={artist.userName}
                 />
               </div>
               <div className="artist-info">
-                <h1 className="artist-name">{artist.artistName}</h1>
+                <h1 className="artist-name">{artist.userName}</h1>
               </div>
             </div>
           </div>
@@ -326,12 +351,12 @@ export default function Artist() {
           {/* Stats section */}
           <section className="stats-section">
             <div className="stat-card">
-              <div className="stat-value">{songs.length}</div>
+              <div className="stat-value">{audios.length}</div>
               <div className="stat-label">Songs</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">
-                {songs
+                {audios
                   .reduce((sum, song) => sum + song.plays, 0)
                   .toLocaleString()}
               </div>
@@ -339,7 +364,7 @@ export default function Artist() {
             </div>
             <div className="stat-card">
               <div className="stat-value">
-                {songs
+                {audios
                   .reduce((sum, song) => sum + song.likes, 0)
                   .toLocaleString()}
               </div>
@@ -370,7 +395,7 @@ export default function Artist() {
               </button>
             </div>
 
-            {songs.length === 0 ? (
+            {audios.length === 0 ? (
               <div className="no-songs">
                 <p>You haven't uploaded any songs yet.</p>
                 <button className="add-first-song-button" onClick={openAddForm}>
@@ -392,7 +417,7 @@ export default function Artist() {
                     </tr>
                   </thead>
                   <tbody>
-                    {songs.map((song, index) => (
+                    {audios.map((song, index) => (
                       <tr
                         key={song.id}
                         className={
@@ -512,7 +537,7 @@ export default function Artist() {
           <div className="now-playing">
             <img
               src={
-                songs.find((song) => song.id === currentSongId)?.coverArt ||
+                audios.find((song) => song.id === currentSongId)?.coverArt ||
                 "/placeholder.svg"
               }
               alt="Song cover"
@@ -520,7 +545,7 @@ export default function Artist() {
             />
             <div className="track-info">
               <h4 className="track-title">
-                {songs.find((song) => song.id === currentSongId)?.title}
+                {audios.find((song) => song.id === currentSongId)?.title}
               </h4>
               <p className="track-artist">{artist.artistName}</p>
             </div>

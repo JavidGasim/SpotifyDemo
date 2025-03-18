@@ -120,7 +120,7 @@ namespace Identity.WebApi.Controllers
 
                 //await _fileService.SetDataAsync(_filePath, "User Login is Succesfully");
 
-                return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo });
+                return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, Role = userRoles.FirstOrDefault() });
 
             }
 

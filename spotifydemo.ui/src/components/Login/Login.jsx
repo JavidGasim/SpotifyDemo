@@ -36,13 +36,20 @@ export default function Login() {
       .post(url, obj)
       .then((response) => {
         // alert("Login is Successfully");
-        Cookies.set(data.userName, response.data.token, { expires: 30 });
+        Cookies.set(data.userName, response.data.token, response.data.role, {
+          expires: 30,
+        });
         Cookies.set("username", data.userName, { expires: 30 });
+        Cookies.set("role", response.data.role, { expires: 30 });
+        console.log(response.data.role);
+
         // var username = Cookies.get("username");
         // var token = Cookies.get(username);
         // alert(username,token)
         // CurrentUser();
-        navigate("/");
+        if (response.data.role == "artist") {
+          navigate("/artist");
+        }
       })
       .catch((error) => {
         alert("Not found User!");
