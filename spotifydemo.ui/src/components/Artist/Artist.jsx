@@ -73,18 +73,19 @@ export default function Artist() {
 
   // Player state
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSongId, setCurrentSongId] = useState(null);
+  const [currentSongId, setCurrentSongId] = useState("");
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
-
+  // const [audioUrl, setAudioUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   // Form states
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [formData, setFormData] = useState({
     id: null,
     title: "",
-    releaseDate: "",
+    name: "",
     coverArt: null,
     audioFile: null,
   });
@@ -95,7 +96,7 @@ export default function Artist() {
 
   // Handle song playback
   const playSong = (songId) => {
-    if (currentSongId === songId && isPlaying) {
+    if (currentSongId && currentSongId === songId && isPlaying) {
       setIsPlaying(false);
       audioRef.current.pause();
     } else {
@@ -103,37 +104,17 @@ export default function Artist() {
       setIsPlaying(true);
       // In a real app, you would load the audio file here
       // For now, we'll just simulate playback
-      setDuration(audios.find((song) => song.id === songId).duration);
+      // setDuration(audios.find((song) => song.id === songId).length);
+      setDuration(audioRef.current.duration);
       setCurrentTime(0);
       // If we had actual audio:
       // audioRef.current.src = song.audioUrl
-      // audioRef.current.play()
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play();
+        }
+      }, 100);
     }
-  };
-
-  // Format time for display (e.g., 3:45)
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  // Handle progress bar change
-  const handleProgressChange = (e) => {
-    const newTime = (e.target.value / 100) * duration;
-    setCurrentTime(newTime);
-    // In a real app with actual audio:
-    // audioRef.current.currentTime = newTime
   };
 
   // Handle form input changes
@@ -146,29 +127,91 @@ export default function Artist() {
   };
 
   // Handle file inputs
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const { name, files } = e.target;
 
     if (name === "coverArt" && files[0]) {
-      setFormData({
-        ...formData,
-        coverArt: files[0],
-      });
+      const file = e.target.files[0];
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCoverArtPreview(reader.result);
-      };
-      reader.readAsDataURL(files[0]);
+      if (!file) {
+        return;
+      }
+
+      const allowedFormats = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/webp",
+      ];
+      if (!allowedFormats.includes(file.type)) {
+        alert("Yalnız şəkil formatında fayllara icazə verilir!");
+        return;
+      }
+
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
+      // setFormData((prevdata) => ({
+      //   ...prevdata,
+      //   coverArt: newPreviewUrl,
+      // }));
+
+      const formData2 = new FormData();
+      formData2.append("file", file);
+
+      try {
+        const response = await axios.post(
+          "https://localhost:5002/msNewImage",
+          formData2,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        // alert(response.data.imageUrl);
+        // setImageUrl(response.data.imageUrl);
+        setFormData((prevdata) => ({
+          ...prevdata,
+          coverArt: response.data.imageUrl,
+        }));
+        console.log(formData.coverArt);
+
+        console.log("Şəkil yükləndi:", response.data.imageUrl);
+      } catch (error) {
+        console.error("Yükləmə xətası:", error);
+      }
     }
 
     if (name === "audioFile" && files[0]) {
-      setFormData({
-        ...formData,
-        audioFile: files[0],
-      });
-      setAudioFileName(files[0].name);
+      const file = e.target.files[0];
+
+      if (!file) {
+        // alert("Please select an audio file first!");
+        return;
+      }
+
+      const formData2 = new FormData();
+      formData2.append("file", file);
+
+      try {
+        const response = await axios.post(
+          "https://localhost:5002/uploadAudio",
+          formData2
+        );
+        // setAudioUrl(response.data.audioUrl);
+        setFormData((prevdata) => ({
+          ...prevdata,
+          audioFile: response.data.audioUrl,
+        }));
+        console.log(formData.audioFile);
+
+        console.log("Audio url => ", response.data.audioUrl);
+        // alert(response.data.audioUrl);
+      } catch (error) {
+        console.error("Audio upload failed", error);
+        // alert(error.response.data.message);
+      }
     }
   };
 
@@ -177,7 +220,7 @@ export default function Artist() {
     setFormData({
       id: null,
       title: "",
-      releaseDate: new Date().toISOString().split("T")[0],
+      name: "",
       coverArt: null,
       audioFile: null,
     });
@@ -209,23 +252,44 @@ export default function Artist() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (showAddForm) {
       // Add new song
-      const newSong = {
-        id: Date.now(), // Simple ID generation
+      var obj = {
+        name: formData.name,
         title: formData.title,
-        duration: 180, // Default duration
-        plays: 0,
-        likes: 0,
-        releaseDate: formData.releaseDate,
-        coverArt: coverArtPreview || "/placeholder.svg?height=80&width=80",
-        audioFile: formData.audioFile,
+        imageUrl: formData.coverArt,
+        audioUrl: formData.audioFile,
+        userId: artist.id,
       };
 
-      setAudios([...audios, newSong]);
+      console.log(obj.audioUrl);
+      console.log(obj.imageUrl);
+      console.log(obj.name);
+      console.log(obj.title);
+      console.log(obj.userId);
+
+      const name2 = Cookies.get("username");
+      const token = Cookies.get(name2);
+      const url = "https://localhost:5002/newAudio";
+
+      // alert(token);
+      await axios
+        .post(url, obj, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          alert("Audio Added Successfully");
+          navigate("/artist");
+        })
+        .catch((error) => {
+          alert(error.response.data.message);
+          console.error("Yükləmə xətası:", error);
+        });
     } else if (showEditForm) {
       // Update existing song
       const updatedSongs = audios.map((song) => {
@@ -263,32 +327,33 @@ export default function Artist() {
   // Trigger file input click
   const triggerFileInput = (inputRef) => {
     inputRef.current.click();
+    console.log(inputRef);
   };
 
-  // Simulate playback progress
-  useEffect(() => {
-    let interval;
+  // // Simulate playback progress
+  // useEffect(() => {
+  //   let interval;
 
-    if (isPlaying) {
-      interval = setInterval(() => {
-        if (currentTime < duration) {
-          setCurrentTime((prev) => {
-            const newTime = prev + 1;
-            if (newTime >= duration) {
-              setIsPlaying(false);
-              return 0;
-            }
-            return newTime;
-          });
-        } else {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }
-      }, 1000);
-    }
+  //   if (isPlaying) {
+  //     interval = setInterval(() => {
+  //       if (currentTime < duration) {
+  //         setCurrentTime((prev) => {
+  //           const newTime = prev + 1;
+  //           if (newTime >= duration) {
+  //             setIsPlaying(false);
+  //             return 0;
+  //           }
+  //           return newTime;
+  //         });
+  //       } else {
+  //         setIsPlaying(false);
+  //         setCurrentTime(0);
+  //       }
+  //     }, 1000);
+  //   }
 
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTime, duration]);
+  //   return () => clearInterval(interval);
+  // }, [isPlaying, currentTime, duration]);
 
   const navigate = useNavigate();
 
@@ -409,11 +474,11 @@ export default function Artist() {
                     <tr>
                       <th style={{ width: "50px" }}>#</th>
                       <th style={{ width: "40%" }}>Title</th>
-                      <th>Release Date</th>
+                      {/* <th>Release Date</th>
                       <th>Duration</th>
                       <th>Plays</th>
                       <th>Likes</th>
-                      <th>Actions</th>
+                      <th>Actions</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -464,17 +529,17 @@ export default function Artist() {
                         <td>
                           <div className="song-info">
                             <img
-                              src={song.coverArt || "/placeholder.svg"}
+                              src={song.imageUrl || "/placeholder.svg"}
                               alt={song.title}
                               className="song-cover"
                             />
-                            <span className="song-title">{song.title}</span>
+                            <span className="song-title">{song.name}</span>
                           </div>
                         </td>
-                        <td>{formatDate(song.releaseDate)}</td>
+                        {/* <td>{formatDate(song.releaseDate)}</td>
                         <td>{formatTime(song.duration)}</td>
                         <td>{song.plays.toLocaleString()}</td>
-                        <td>{song.likes.toLocaleString()}</td>
+                        <td>{song.likes.toLocaleString()}</td> */}
                         <td>
                           <div className="song-actions">
                             <button
@@ -537,7 +602,7 @@ export default function Artist() {
           <div className="now-playing">
             <img
               src={
-                audios.find((song) => song.id === currentSongId)?.coverArt ||
+                audios.find((song) => song.id === currentSongId)?.imageUrl ||
                 "/placeholder.svg"
               }
               alt="Song cover"
@@ -545,118 +610,20 @@ export default function Artist() {
             />
             <div className="track-info">
               <h4 className="track-title">
-                {audios.find((song) => song.id === currentSongId)?.title}
+                {audios.find((song) => song.id === currentSongId)?.name}
               </h4>
               <p className="track-artist">{artist.artistName}</p>
             </div>
-          </div>
-
-          <div className="player-controls">
-            <div className="control-buttons">
-              <button className="control-button">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
-                  <line x1="5" y1="19" x2="5" y2="5"></line>
-                </svg>
-              </button>
-              <button
-                className="control-button"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
-                )}
-              </button>
-              <button className="control-button">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                  <line x1="19" y1="5" x2="19" y2="19"></line>
-                </svg>
-              </button>
-            </div>
-
-            <div className="progress-container">
-              <span className="time-elapsed">{formatTime(currentTime)}</span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={(currentTime / duration) * 100 || 0}
-                onChange={handleProgressChange}
-                className="progress-slider"
-              />
-              <span className="time-total">{formatTime(duration)}</span>
-            </div>
-          </div>
-
-          <div className="player-actions">
-            <button className="action-button">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-              </svg>
-            </button>
-          </div>
-
+          </div>{" "}
           {/* Hidden audio element */}
-          <audio ref={audioRef} />
+          <audio
+            ref={audioRef}
+            controls
+            src={audios.find((song) => song.id === currentSongId)?.audioUrl}
+            onPlay={() => setIsPlaying(true)} // Audio başlayanda state yenilə
+            onPause={() => setIsPlaying(false)} // Audio dayananda state yenilə
+            onEnded={() => setIsPlaying(false)} // Mahnı bitəndə də false olsun
+          />
         </footer>
       )}
 
@@ -699,12 +666,13 @@ export default function Artist() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="releaseDate">Release Date</label>
+                <label htmlFor="name">Name</label>
                 <input
-                  type="date"
-                  id="releaseDate"
-                  name="releaseDate"
-                  value={formData.releaseDate}
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  placeholder="Enter song name"
                   onChange={handleInputChange}
                   required
                 />
