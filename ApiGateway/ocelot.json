@@ -193,6 +193,18 @@
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
+      "DownstreamPathTemplate": "/api/music/deleteAudio/{audioId}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/deleteAudio/{audioId}",
+      "UpstreamHttpMethod": [ "Delete" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/music/likeCount/{audioId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -202,6 +214,18 @@
         }
       ],
       "UpstreamPathTemplate": "/likeCount/{audioId}",
+      "UpstreamHttpMethod": [ "Put" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/music/updateAudio",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/updateAudio",
       "UpstreamHttpMethod": [ "Put" ]
     },
     {

@@ -3,6 +3,7 @@ import "../Artist/Artist.css";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
+import AudioPlayer from "react-h5-audio-player";
 export default function Artist() {
   // Artist profile data
   const [artist, setArtist] = useState({
@@ -50,6 +51,7 @@ export default function Artist() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAudios(response.data.audios);
+      console.log(audios.audioUrl);
     } catch (error) {
       alert(error.response?.data?.message || "Failed to fetch audios");
     } finally {
@@ -95,27 +97,88 @@ export default function Artist() {
   const audioFileInputRef = useRef(null);
 
   // Handle song playback
-  const playSong = (songId) => {
-    if (currentSongId && currentSongId === songId && isPlaying) {
+  const playSong = async (songId) => {
+    if (currentSongId === songId && isPlaying) {
       setIsPlaying(false);
       audioRef.current.pause();
     } else {
       setCurrentSongId(songId);
       setIsPlaying(true);
+
+      // const audio = audioRef.current;
+      // console.log(audio.duration);
+      // console.log(audio.metadata);
       // In a real app, you would load the audio file here
       // For now, we'll just simulate playback
-      // setDuration(audios.find((song) => song.id === songId).length);
-      setDuration(audioRef.current.duration);
+      setDuration(audios.find((song) => song.id === songId).duration);
+      // setDuration(audioRef.current.duration);
+      console.log(duration);
+
       setCurrentTime(0);
+
       // If we had actual audio:
-      // audioRef.current.src = song.audioUrl
-      setTimeout(() => {
-        if (audioRef.current) {
-          audioRef.current.play();
-        }
-      }, 100);
+      // audioRef.current.src = audios.find((song) => song.id === songId).audioUrl;
+      // audioRef.current.play();
     }
   };
+
+  const handleMetadata = async () => {
+    const audio = audioRef.current;
+    console.log(audio);
+
+    if (audio) {
+      setDuration(audio.duration); // Audio-nun uzunluğunu (duration) alırıq
+    }
+  };
+  // Format time for display (e.g., 3:45)
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Handle progress bar change
+  const handleProgressChange = (e) => {
+    const newTime = (e.target.value / 100) * duration;
+    setCurrentTime(newTime);
+    // In a real app with actual audio:
+    // audioRef.current.currentTime = newTime
+  };
+
+  useEffect(() => {
+    let interval;
+
+    if (isPlaying) {
+      audioRef.current.play();
+      interval = setInterval(() => {
+        if (currentTime < duration) {
+          setCurrentTime((prev) => {
+            const newTime = prev + 1;
+            if (newTime >= duration) {
+              setIsPlaying(false);
+              return 0;
+            }
+            return newTime;
+          });
+        } else {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isPlaying, currentTime, duration]);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -231,7 +294,7 @@ export default function Artist() {
   };
 
   // Open edit song form
-  const openEditForm = (song) => {
+  const openEditForm = async (song) => {
     setFormData({
       id: song.id,
       title: song.title,
@@ -292,28 +355,71 @@ export default function Artist() {
         });
     } else if (showEditForm) {
       // Update existing song
-      const updatedSongs = audios.map((song) => {
-        if (song.id === formData.id) {
-          return {
-            ...song,
-            title: formData.title,
-            releaseDate: formData.releaseDate,
-            coverArt: coverArtPreview || song.coverArt,
-            audioFile: formData.audioFile || song.audioFile,
-          };
-        }
-        return song;
-      });
+      // const updatedSongs = audios.map((song) => {
+      //   if (song.id === formData.id) {
+      //     return {
+      //       ...song,
+      //       title: formData.title,
+      //       releaseDate: formData.releaseDate,
+      //       coverArt: coverArtPreview || song.coverArt,
+      //       audioFile: formData.audioFile || song.audioFile,
+      //     };
+      //   }
+      //   return song;
+      // });
 
-      setAudios(updatedSongs);
+      // setAudios(updatedSongs);
+      var obj = {
+        name: formData.name,
+        title: formData.title,
+        imageUrl: formData.coverArt,
+        audioUrl: formData.audioFile,
+        userId: artist.id,
+      };
+
+      console.log(obj.audioUrl);
+      console.log(obj.imageUrl);
+      console.log(obj.name);
+      console.log(obj.title);
+      console.log(obj.userId);
+
+      const name2 = Cookies.get("username");
+      const token = Cookies.get(name2);
+      const url = "https://localhost:5002/updateAudio";
+
+      // alert(token);
+      await axios
+        .post(url, obj, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          alert("Audio Added Successfully");
+          navigate("/artist");
+        })
+        .catch((error) => {
+          alert(error.response.data.message);
+          console.error("Yükləmə xətası:", error);
+        });
     }
 
     closeForm();
   };
 
   // Delete a song
-  const deleteSong = (songId) => {
-    if (window.confirm("Are you sure you want to delete this song?")) {
+  const deleteSong = async (songId) => {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+
+    try {
+      setLoading(true);
+      const url = generalUrl + `deleteAudio/${songId}`;
+      const response = await axios.delete(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(response.data);
+
       const updatedSongs = audios.filter((song) => song.id !== songId);
       setAudios(updatedSongs);
 
@@ -321,6 +427,10 @@ export default function Artist() {
         setIsPlaying(false);
         setCurrentSongId(null);
       }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to delete audio");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -331,29 +441,29 @@ export default function Artist() {
   };
 
   // // Simulate playback progress
-  // useEffect(() => {
-  //   let interval;
+  useEffect(() => {
+    let interval;
 
-  //   if (isPlaying) {
-  //     interval = setInterval(() => {
-  //       if (currentTime < duration) {
-  //         setCurrentTime((prev) => {
-  //           const newTime = prev + 1;
-  //           if (newTime >= duration) {
-  //             setIsPlaying(false);
-  //             return 0;
-  //           }
-  //           return newTime;
-  //         });
-  //       } else {
-  //         setIsPlaying(false);
-  //         setCurrentTime(0);
-  //       }
-  //     }, 1000);
-  //   }
+    if (isPlaying) {
+      interval = setInterval(() => {
+        if (currentTime < duration) {
+          setCurrentTime((prev) => {
+            const newTime = prev + 1;
+            if (newTime >= duration) {
+              setIsPlaying(false);
+              return 0;
+            }
+            return newTime;
+          });
+        } else {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
+      }, 1000);
+    }
 
-  //   return () => clearInterval(interval);
-  // }, [isPlaying, currentTime, duration]);
+    return () => clearInterval(interval);
+  }, [isPlaying, currentTime, duration]);
 
   const navigate = useNavigate();
 
@@ -612,18 +722,22 @@ export default function Artist() {
               <h4 className="track-title">
                 {audios.find((song) => song.id === currentSongId)?.name}
               </h4>
-              <p className="track-artist">{artist.artistName}</p>
+              {/* <p className="track-artist">{artist.artistName}</p> */}
             </div>
           </div>{" "}
-          {/* Hidden audio element */}
           <audio
-            ref={audioRef}
             controls
-            src={audios.find((song) => song.id === currentSongId)?.audioUrl}
-            onPlay={() => setIsPlaying(true)} // Audio başlayanda state yenilə
-            onPause={() => setIsPlaying(false)} // Audio dayananda state yenilə
-            onEnded={() => setIsPlaying(false)} // Mahnı bitəndə də false olsun
+            ref={audioRef}
+            src={audios.find((song) => song.id == currentSongId).audioUrl}
+            // onPlay={setIsPlaying(true)}
+            // onPause={setIsPlaying(false)}
+            onLoadedMetadata={handleMetadata}
           />
+          {/* <AudioPlayer
+            autoPlay
+            src={audios.find((song) => song.Id == currentSongId).audioUrl}
+            onPlay={(e) => console.log("onPlay")}
+          /> */}
         </footer>
       )}
 

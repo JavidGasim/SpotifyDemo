@@ -320,5 +320,41 @@ namespace Music.WebApi.Controllers
             return Ok(new { Comments = comments });
         }
 
+        [HttpDelete("deleteAudio/{audioId}")]
+        public async Task<IActionResult> DeleteAudio(int audioId)
+        {
+            var audio = await _audioService.GetByIdAsync(audioId);
+            if (audio == null)
+            {
+                await _fileService.SetDataAsync(_filePath, "Audio Not Found!");
+                return NotFound(new { Message = "Audio Not Found!" });
+            }
+            await _audioService.DeleteAsync(audio);
+            await _fileService.SetDataAsync(_filePath, "Audio Deleted Successfully!");
+            return Ok(new { Message = "Audio Deleted Successfully!" });
+        }
+
+        [HttpPut("updateAudio")]
+        public async Task<IActionResult> UpdateAudio([FromBody] AudioDTO dto)
+        {
+            //var audio = await _audioService.GetByIdAsync(dto.Id);
+            var audios = await _audioService.GetUserAllAudiosAsync(dto.UserId);
+            var audio = audios.FirstOrDefault(a => a.Title == dto.Title);
+            if (audio == null)
+            {
+                await _fileService.SetDataAsync(_filePath, "Audio Not Found!");
+                return NotFound(new { Message = "Audio Not Found!" });
+            }
+
+            audio.Name = dto.Name ?? audio.Name;
+            audio.Title = dto.Title ?? audio.Title;
+            audio.ImageUrl = dto.ImageUrl ?? audio.ImageUrl;
+            audio.AudioUrl = dto.AudioUrl ?? audio.AudioUrl;
+            audio.UserId = dto.UserId ?? audio.UserId;
+            await _audioService.UpdateAsync(audio);
+            await _fileService.SetDataAsync(_filePath, "Audio Updated Successfully!");
+            return Ok(new { Message = "Audio Updated Successfully!" });
+        }
+
     }
 }

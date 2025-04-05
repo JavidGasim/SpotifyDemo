@@ -22,7 +22,7 @@ export default function Login() {
   const navigate = useNavigate();
   var generalUrl = "https://localhost:5002/";
 
-  function LoginUser() {
+  async function LoginUser() {
     var url = generalUrl + "login";
     var obj = {
       userName: data.userName,
@@ -32,7 +32,7 @@ export default function Login() {
     // alert(data.userName);
     // alert(data.password);
 
-    axios
+    await axios
       .post(url, obj)
       .then((response) => {
         // alert("Login is Successfully");
