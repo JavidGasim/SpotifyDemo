@@ -335,11 +335,11 @@ namespace Music.WebApi.Controllers
         }
 
         [HttpPut("updateAudio")]
-        public async Task<IActionResult> UpdateAudio([FromBody] AudioDTO dto)
+        public async Task<IActionResult> UpdateAudio([FromBody] AudioUpdateDTO dto)
         {
             //var audio = await _audioService.GetByIdAsync(dto.Id);
             var audios = await _audioService.GetUserAllAudiosAsync(dto.UserId);
-            var audio = audios.FirstOrDefault(a => a.Title == dto.Title);
+            var audio = audios.FirstOrDefault(a => a.Id == dto.Id);
             if (audio == null)
             {
                 await _fileService.SetDataAsync(_filePath, "Audio Not Found!");

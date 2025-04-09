@@ -298,7 +298,7 @@ export default function Artist() {
     setFormData({
       id: song.id,
       title: song.title,
-      releaseDate: song.releaseDate,
+      name: song.name,
       coverArt: null,
       audioFile: null,
     });
@@ -370,6 +370,7 @@ export default function Artist() {
 
       // setAudios(updatedSongs);
       var obj = {
+        id: formData.id,
         name: formData.name,
         title: formData.title,
         imageUrl: formData.coverArt,
@@ -389,14 +390,15 @@ export default function Artist() {
 
       // alert(token);
       await axios
-        .post(url, obj, {
+        .put(url, obj, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
-          alert("Audio Added Successfully");
-          navigate("/artist");
+          alert("Audio Updated Successfully");
+          // navigate("/artist");
+          navigate(0);
         })
         .catch((error) => {
           alert(error.response.data.message);
@@ -643,7 +645,7 @@ export default function Artist() {
                               alt={song.title}
                               className="song-cover"
                             />
-                            <span className="song-title">{song.name}</span>
+                            <span className="song-title">{artist.name} - {song.name}</span>
                           </div>
                         </td>
                         {/* <td>{formatDate(song.releaseDate)}</td>

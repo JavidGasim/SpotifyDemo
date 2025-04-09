@@ -49,6 +49,8 @@ export default function Login() {
         // CurrentUser();
         if (response.data.role == "artist") {
           navigate("/artist");
+        } else if (response.data.role == "listener") {
+          navigate("/listener");
         }
       })
       .catch((error) => {
