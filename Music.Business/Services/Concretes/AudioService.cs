@@ -40,5 +40,9 @@ namespace Music.Business.Services.Concretes
         {
             await _audioDAL.UpdateAsync(audio);
         }
+        public async Task<List<Audio>> SearchByNameAsync(string name)
+        {
+            return await _audioDAL.SearchByNameAsync(name);
+        }
     }
 }

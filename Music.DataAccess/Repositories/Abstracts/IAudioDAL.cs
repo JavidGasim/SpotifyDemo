@@ -15,5 +15,6 @@ namespace Music.DataAccess.Repositories.Abstracts
         Task AddAsync(Audio audio);
         Task UpdateAsync(Audio audio);
         Task DeleteAsync(Audio audio);
+        Task<List<Audio>> SearchByNameAsync(string name);
     }
 }

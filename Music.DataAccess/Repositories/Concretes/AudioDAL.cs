@@ -44,5 +44,12 @@ namespace Music.DataAccess.Repositories.Concretes
             _spotifyDbContext.Audios.Update(audio);
             await _spotifyDbContext.SaveChangesAsync();
         }
+        public async Task<List<Audio>> SearchByNameAsync(string name)
+        {
+            return await _spotifyDbContext.Audios
+                                 .Where(a => a.Name.Contains(name))
+                                 .ToListAsync();
+        }
+
     }
 }

@@ -356,5 +356,26 @@ namespace Music.WebApi.Controllers
             return Ok(new { Message = "Audio Updated Successfully!" });
         }
 
+        [HttpGet("searchAudio/{name}")]
+        public async Task<IActionResult> SearchAudio(string name)
+        {
+            Console.WriteLine(name);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                await _fileService.SetDataAsync(_filePath, "Invalid search term.");
+                return BadRequest(new { Message = "Search term cannot be empty." });
+            }
+
+            var searchResults = await _audioService.SearchByNameAsync(name);
+
+            if (searchResults == null || !searchResults.Any())
+            {
+                await _fileService.SetDataAsync(_filePath, "No Audio Found!");
+                return NotFound(new { Message = "No Audio Found!" });
+            }
+
+            await _fileService.SetDataAsync(_filePath, "Audio Search Results Returned Successfully!");
+            return Ok(new { SearchResults = searchResults });
+        }
     }
 }

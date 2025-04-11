@@ -294,6 +294,57 @@ export default function Listener() {
     };
   }, []);
 
+  const [query, setQuery] = useState("");
+  const [searchedAudio, setSearchedAudio] = useState([]);
+
+  const searchAudio = async () => {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+
+    // if (!query.trim()) {
+    //   alert("Search term cannot be empty.");
+    //   return;
+    // }
+    const url = generalUrl + `searchAudio/${query}`;
+    console.log("Query:", query);
+    console.log("URL:", url);
+    console.log("Token:", token);
+    // alert(query)
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // setUser(response.data.user);
+        console.log(response.data);
+        setSearchedAudio(response.data.SearchResults);
+        // console.log("asdasd");
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      });
+  };
+
+  const handleInputChange = (e) => {
+    setQuery(e.target.value);
+  };
+
+  const handleSearchClick = () => {
+    // onSearch(query); // inputdakı dəyəri ötürür
+    searchAudio();
+  };
+
+  const handleEnterKey = (e) => {
+    if (e.key === "Enter") {
+      // onSearch(query);
+      searchAudio();
+    }
+  };
+
   return (
     <div className="listener-page">
       {/* Sidebar */}
@@ -490,6 +541,34 @@ export default function Listener() {
               Spotify
             </h1>
           </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={handleInputChange}
+              onKeyDown={handleEnterKey}
+              style={{
+                padding: "8px",
+                width: "200px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+              }}
+            />
+            <button
+              onClick={handleSearchClick}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "4px",
+                // backgroundColor: "#007bff",
+                color: "white",
+                border: "1px solid #ccc",
+                cursor: "pointer",
+              }}
+            >
+              Search
+            </button>
+          </div>
           <div className="auth-buttons">
             <button className="sign-in-button" onClick={() => navigate("/")}>
               <svg
@@ -540,7 +619,7 @@ export default function Listener() {
               Good {getTimeOfDay()}, {artist.userName}
             </h1>
 
-            <div className="quick-links">
+            {/* <div className="quick-links">
               <a href="#" className="quick-link-card">
                 <div className="quick-link-content">
                   <img
@@ -569,7 +648,9 @@ export default function Listener() {
                   </div>
                 </a>
               ))}
-            </div>
+            </div> */}
+            {/* {searchedAudio && searchedAudio.map((audio) => <li>{audio}</li>)} */}
+            {searchAudio (<h1>asdasdsd</h1>)}
           </section>
 
           {/* Recently played section */}
