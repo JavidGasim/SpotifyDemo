@@ -165,5 +165,34 @@ namespace Identity.WebApi.Controllers
             return Ok(new { User = currentUserDto });
 
         }
+
+        [HttpGet("getUserById/{id}")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            Console.WriteLine(id);
+            var user = await _customIdentityUserService.GetByIdAsync(id);
+            if (user == null)
+            {
+                //await _fileService.SetDataAsync(_filePath, "User not found!");
+                return NotFound(new { Message = "User not found" });
+            }
+            var userDto = _mapper.Map<UserDTO>(user);
+            //await _fileService.SetDataAsync(_filePath, "User found succesfully!");
+            return Ok(new { User = userDto });
+        }
+
+        [HttpGet("getAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _customIdentityUserService.GetAllAsync();
+            if (users == null || !users.Any())
+            {
+                //await _fileService.SetDataAsync(_filePath, "No users found!");
+                return NotFound(new { Message = "No users found" });
+            }
+            var userDtos = _mapper.Map<List<UserDTO>>(users);
+            //await _fileService.SetDataAsync(_filePath, "Users found succesfully!");
+            return Ok(new { Users = userDtos });
+        }
     }
 }

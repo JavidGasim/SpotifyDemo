@@ -468,13 +468,14 @@
 }
 
 .track-number {
-  width: 40px;
+  width: 50px;
 }
 
 .track-number-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
+  padding: 0px 15px;
   position: relative;
 }
 
@@ -499,6 +500,10 @@
 .track-row:hover .track-play-button,
 .track-row.active-track .track-play-button {
   display: block;
+}
+
+td {
+  text-align: left;
 }
 
 .track-info {

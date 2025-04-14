@@ -319,7 +319,9 @@ export default function Listener() {
       .then((response) => {
         // setUser(response.data.user);
         console.log(response.data);
-        setSearchedAudio(response.data.SearchResults);
+        setSearchedAudio(response.data.searchResults);
+        console.log(searchedAudio);
+        getSinger();
         // console.log("asdasd");
       })
       .catch((error) => {
@@ -328,6 +330,53 @@ export default function Listener() {
         alert(error.response?.data?.message);
       });
   };
+
+  const [singer, setSinger] = useState([]);
+
+  const getSinger = async () => {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+
+    // const url = generalUrl + `getUserById/${id}`;
+    // console.log(id);
+    const url = generalUrl + `getAllUsers`;
+
+    // console.log("Query:", query);
+    // console.log("URL:", url);
+    // console.log("Token:", token);
+    // alert(query)
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        // setUser(response.data.user);
+        console.log(response.data.users);
+        // console.log(response.data.userName);
+        // console.log(response.data.user.userName);
+
+        setSinger(response.data.users);
+        console.log(singer);
+
+        // setSearchedAudio(response.data.searchResults);
+        // console.log(searchedAudio);
+        // return response.data.user.userName;
+
+        // console.log("asdasd");
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      });
+  };
+
+  useState(() => {
+    getSinger();
+    console.log(singer);
+  });
 
   const handleInputChange = (e) => {
     setQuery(e.target.value);
@@ -347,194 +396,8 @@ export default function Listener() {
 
   return (
     <div className="listener-page">
-      {/* Sidebar */}
-      {/* <aside className="sidebar">
-        <div className="logo-container">
-          <a href="/" className="logo-link">
-            <h1 className="logo">Melodify</h1>
-          </a>
-        </div>
-
-        <div className="sidebar-section">
-          <ul className="nav-list">
-            <li
-              className={`nav-item ${activeSection === "home" ? "active" : ""}`}
-            >
-              <a
-                href="#"
-                className="nav-link"
-                onClick={() => setActiveSection("home")}
-              >
-                <Home size={20} />
-                <span>Home</span>
-              </a>
-            </li>
-            <li
-              className={`nav-item ${
-                activeSection === "search" ? "active" : ""
-              }`}
-            >
-              <a
-                href="#"
-                className="nav-link"
-                onClick={() => setActiveSection("search")}
-              >
-                <Search size={20} />
-                <span>Search</span>
-              </a>
-            </li>
-            <li
-              className={`nav-item ${
-                activeSection === "library" ? "active" : ""
-              }`}
-            >
-              <a
-                href="#"
-                className="nav-link"
-                onClick={() => setActiveSection("library")}
-              >
-                <Library size={20} />
-                <span>Your Library</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div className="sidebar-section">
-          <div className="sidebar-header">
-            <h3>Your Playlists</h3>
-            <button className="icon-button" title="Create playlist">
-              <Plus size={18} />
-            </button>
-          </div>
-          <ul className="playlist-list">
-            <li className="playlist-item">
-              <a href="#" className="playlist-link special">
-                <div className="playlist-icon-container liked">
-                  <Heart size={16} />
-                </div>
-                <span>Liked Songs</span>
-              </a>
-            </li>
-            {yourPlaylists.map((playlist) => (
-              <li key={playlist.id} className="playlist-item">
-                <a href="#" className="playlist-link">
-                  <img
-                    src={playlist.cover || "/placeholder.svg"}
-                    alt={playlist.title}
-                    className="playlist-thumb"
-                  />
-                  <div className="playlist-info">
-                    <span className="playlist-title">{playlist.title}</span>
-                    <span className="playlist-details">
-                      Playlist • {playlist.tracks} songs
-                    </span>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside> */}
-
       {/* Main content */}
       <main className="main-content3">
-        {/* Top bar */}
-        {/* <div className="top-bar">
-          <div className="navigation-buttons">
-            <button className="nav-button" title="Go back">
-              <ChevronLeft size={24} />
-            </button>
-            <button className="nav-button" title="Go forward">
-              <ChevronRight size={24} />
-            </button>
-          </div>
-
-          <div className="search-container">
-            <Search className="search-icon" size={18} />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search for songs, artists, or albums"
-            />
-          </div>
-
-          <div className="user-menu-container" ref={userMenuRef}>
-            <button
-              className="user-menu-button"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              aria-expanded={showUserMenu}
-              aria-haspopup="true"
-            >
-              <div className="user-avatar">
-                <img src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                {user.premium && (
-                  <div className="premium-badge" title="Premium subscriber">
-                    P
-                  </div>
-                )}
-              </div>
-              <span className="user-name">{user.name}</span>
-              <ChevronDown
-                size={16}
-                className={`dropdown-icon ${showUserMenu ? "open" : ""}`}
-              />
-            </button>
-
-            {showUserMenu && (
-              <div className="user-dropdown">
-                <ul className="dropdown-menu">
-                  <li className="dropdown-item">
-                    <a href="/profile" className="dropdown-link">
-                      <User size={16} />
-                      <span>Profile</span>
-                    </a>
-                  </li>
-                  <li className="dropdown-item">
-                    <a href="/settings" className="dropdown-link">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                      </svg>
-                      <span>Settings</span>
-                    </a>
-                  </li>
-                  <li className="dropdown-divider"></li>
-                  <li className="dropdown-item">
-                    <a href="/sign-out" className="dropdown-link">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      <span>Sign out</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </div> */}
         <nav className="navbar">
           <div className="logo-container">
             <h1 className="logo" onClick={() => navigate("/")}>
@@ -650,16 +513,13 @@ export default function Listener() {
               ))}
             </div> */}
             {/* {searchedAudio && searchedAudio.map((audio) => <li>{audio}</li>)} */}
-            {searchAudio (<h1>asdasdsd</h1>)}
+            {/* {searchedAudio && (<h1>asdasdsd</h1>)} */}
           </section>
 
           {/* Recently played section */}
           <section className="content-section">
             <div className="section-header">
-              <h2>Recently Played</h2>
-              <a href="#" className="see-all-link">
-                See All
-              </a>
+              <h2>Results</h2>
             </div>
 
             <div className="track-table-container">
@@ -667,15 +527,16 @@ export default function Listener() {
                 <thead>
                   <tr>
                     <th className="track-number">#</th>
-                    <th className="track-title">Title</th>
-                    <th className="track-album">Album</th>
+                    <th className="track-title">Cover</th>
+                    <th className="track-album">Track Name</th>
+                    <th className="track-album">Singer Name</th>
                     <th className="track-duration">
                       <Clock size={16} />
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recentlyPlayed.map((track, index) => (
+                  {searchedAudio.map((track, index) => (
                     <tr
                       key={track.id}
                       className={`track-row ${
@@ -683,7 +544,10 @@ export default function Listener() {
                       }`}
                       onDoubleClick={() => playSong(index)}
                     >
-                      <td className="track-number">
+                      <td
+                        className="track-number"
+                        style={{ textAlign: "left", padding: "0px" }}
+                      >
                         <div className="track-number-container">
                           <span className="track-index">{index + 1}</span>
                           <button
@@ -717,27 +581,24 @@ export default function Listener() {
                           </button>
                         </div>
                       </td>
-                      <td className="track-title">
-                        <div className="track-info">
-                          <img
-                            src={track.cover || "/placeholder.svg"}
-                            alt={track.title}
-                            className="track-cover"
-                          />
-                          <div className="track-details">
-                            <span className="track-name">{track.title}</span>
-                            <div className="track-artist-container">
-                              {track.explicit && (
-                                <span className="explicit-badge">E</span>
-                              )}
-                              <span className="track-artist">
-                                {track.artist}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                      <td>
+                        {" "}
+                        <img
+                          src={track.imageUrl || "/placeholder.svg"}
+                          alt={track.title}
+                          className="track-cover"
+                        />
                       </td>
-                      <td className="track-album">{track.album}</td>
+                      <td className="track-title">
+                        <span className="track-name">{track.name}</span>
+                      </td>
+                      <td className="track-album">
+                        {" "}
+                        <span className="track-name">
+                          {Array.isArray(singer) &&
+                            singer.find((s) => s.id == track.userId)?.userName}
+                        </span>
+                      </td>
                       <td className="track-duration">
                         {formatTime(track.duration)}
                       </td>
