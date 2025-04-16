@@ -246,6 +246,14 @@ export default function Listener() {
     },
   ];
 
+  const audioRefs = useRef({});
+
+  const handleMetadataLoaded = (id, duration) => {
+    setSearchedAudio((prev) =>
+      prev.map((song) => (song.id === id ? { ...song, duration } : song))
+    );
+  };
+
   // Format time for display (e.g., 3:45)
   const formatTime = (seconds) => {
     if (!seconds && seconds !== 0) return "--:--";
@@ -254,12 +262,30 @@ export default function Listener() {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  const playSong = (index) => {
-    if (currentTrackIndex === index && isPlaying) {
+    const audioRef = useRef(null);
+
+  const playSong = async (songId) => {
+    if (currentTrackIndex === songId && isPlaying) {
       setIsPlaying(false);
+      audioRef.current.pause();
     } else {
-      setCurrentTrackIndex(index);
+      setCurrentTrackIndex(songId);
       setIsPlaying(true);
+
+      // const audio = audioRef.current;
+      // console.log(audio.duration);
+      // console.log(audio.metadata);
+      // In a real app, you would load the audio file here
+      // For now, we'll just simulate playback
+      // setDuration(audios.find((song) => song.id === songId).duration);
+      // // setDuration(audioRef.current.duration);
+      // console.log(duration);
+
+      // setCurrentTime(0);
+
+      // If we had actual audio:
+      // audioRef.current.src = audios.find((song) => song.id === songId).audioUrl;
+      // audioRef.current.play();
     }
   };
 
@@ -394,6 +420,39 @@ export default function Listener() {
     }
   };
 
+  const [showPlaylistInput, setShowPlaylistInput] = useState({});
+  const [playlistNames, setPlaylistNames] = useState({});
+
+  async function addPlaylist(audioId) {
+    const name = playlistNames[audioId]; // O anki audio için playlist adı
+    if (!name?.trim()) {
+      alert("Please enter a valid playlist name.");
+      return;
+    }
+
+    try {
+      const username = Cookies.get("username");
+      const token = Cookies.get(username);
+      const url = generalUrl + `playList?name=${name}&audioId=${audioId}`;
+      await axios.post(
+        url,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert(`Playlist "${name}" added successfully!`);
+      setShowPlaylistInput({});
+      setPlaylistNames((prevState) => ({ ...prevState, [audioId]: "" })); // İlgili inputu temizle
+      // fetchAllAudios(); // Listeyi güncelle
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add playlist.");
+    }
+  }
+
   return (
     <div className="listener-page">
       {/* Main content */}
@@ -517,175 +576,180 @@ export default function Listener() {
           </section>
 
           {/* Recently played section */}
-          <section className="content-section">
-            <div className="section-header">
-              <h2>Results</h2>
-            </div>
+          {searchedAudio.length > 0 && (
+            <section className="content-section">
+              <div className="section-header">
+                <h2>Results</h2>
+              </div>
 
-            <div className="track-table-container">
-              <table className="track-table">
-                <thead>
-                  <tr>
-                    <th className="track-number">#</th>
-                    <th className="track-title">Cover</th>
-                    <th className="track-album">Track Name</th>
-                    <th className="track-album">Singer Name</th>
-                    <th className="track-duration">
-                      <Clock size={16} />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchedAudio.map((track, index) => (
-                    <tr
-                      key={track.id}
-                      className={`track-row ${
-                        currentTrackIndex === index ? "active-track" : ""
-                      }`}
-                      onDoubleClick={() => playSong(index)}
-                    >
-                      <td
-                        className="track-number"
-                        style={{ textAlign: "left", padding: "0px" }}
-                      >
-                        <div className="track-number-container">
-                          <span className="track-index">{index + 1}</span>
-                          <button
-                            className="track-play-button"
-                            onClick={() => playSong(index)}
-                          >
-                            {currentTrackIndex === index && isPlaying ? (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                stroke="none"
-                              >
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                              </svg>
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                stroke="none"
-                              >
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        {" "}
-                        <img
-                          src={track.imageUrl || "/placeholder.svg"}
-                          alt={track.title}
-                          className="track-cover"
-                        />
-                      </td>
-                      <td className="track-title">
-                        <span className="track-name">{track.name}</span>
-                      </td>
-                      <td className="track-album">
-                        {" "}
-                        <span className="track-name">
-                          {Array.isArray(singer) &&
-                            singer.find((s) => s.id == track.userId)?.userName}
-                        </span>
-                      </td>
-                      <td className="track-duration">
-                        {formatTime(track.duration)}
-                      </td>
+              <div className="track-table-container">
+                <table className="track-table">
+                  <thead>
+                    <tr>
+                      <th className="track-number">#</th>
+                      <th className="track-title">Cover</th>
+                      <th className="track-album">Track Name</th>
+                      <th className="track-album">Singer Name</th>
+                      <th className="track-duration">
+                        <Clock size={16} />
+                      </th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Featured playlists section */}
-          <section className="content-section">
-            <div className="section-header">
-              <h2>Featured Playlists</h2>
-              <a href="#" className="see-all-link">
-                See All
-              </a>
-            </div>
-            <div className="playlist-grid">
-              {featuredPlaylists.map((playlist) => (
-                <div key={playlist.id} className="playlist-card">
-                  <div className="playlist-artwork">
-                    <img
-                      src={playlist.cover || "/placeholder.svg"}
-                      alt={playlist.title}
-                    />
-                    <div className="playlist-overlay">
-                      <button className="play-button">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          stroke="none"
+                  </thead>
+                  <tbody>
+                    {searchedAudio.map((track, index) => (
+                      <tr
+                        key={track.id}
+                        className={`track-row ${
+                          currentTrackIndex === index ? "active-track" : ""
+                        }`}
+                        onClick={() => playSong(index)}
+                      >
+                        <td
+                          className="track-number"
+                          style={{ textAlign: "left", padding: "0px" }}
                         >
-                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <h3 className="playlist-title">{playlist.title}</h3>
-                  <p className="playlist-description">{playlist.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Top artists section */}
-          <section className="content-section">
-            <div className="section-header">
-              <h2>Top Artists</h2>
-              <a href="#" className="see-all-link">
-                See All
-              </a>
-            </div>
-            <div className="artist-grid">
-              {topArtists.map((artist) => (
-                <div key={artist.id} className="artist-card">
-                  <div className="artist-artwork">
-                    <img
-                      src={artist.cover || "/placeholder.svg"}
-                      alt={artist.name}
-                    />
-                    <div className="artist-overlay">
-                      <button className="play-button">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          stroke="none"
-                        >
-                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <h3 className="artist-name">{artist.name}</h3>
-                  <p className="artist-followers">
-                    {artist.followers} followers
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
+                          <div className="track-number-container">
+                            <span className="track-index">{index + 1}</span>
+                            <button
+                              className="track-play-button"
+                              onClick={() => playSong(index)}
+                            >
+                              {currentTrackIndex === index && isPlaying ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  stroke="none"
+                                >
+                                  <rect
+                                    x="6"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                  <rect
+                                    x="14"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  stroke="none"
+                                >
+                                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          {" "}
+                          <img
+                            src={track.imageUrl || "/placeholder.svg"}
+                            alt={track.title}
+                            className="track-cover"
+                          />
+                        </td>
+                        <td className="track-title">
+                          <span className="track-name">{track.name}</span>
+                        </td>
+                        <td className="track-album">
+                          {" "}
+                          <span className="track-name">
+                            {Array.isArray(singer) &&
+                              singer.find((s) => s.id == track.userId)
+                                ?.userName}
+                          </span>
+                        </td>
+                        <td className="track-duration">
+                          {formatTime(track.duration)}
+                        </td>
+                        <td>
+                          <audio
+                            style={{ display: "none" }}
+                            ref={(el) => (audioRefs.current[track.id] = el)}
+                            src={track.audioUrl}
+                            onLoadedMetadata={() =>
+                              handleMetadataLoaded(
+                                track.id,
+                                audioRefs.current[track.id].duration
+                              )
+                            }
+                            controls
+                          />
+                        </td>
+                        <td>
+                          <button
+                            style={{
+                              padding: "0",
+                              backgroundColor: "transparent",
+                              border: 0,
+                            }}
+                            onClick={() =>
+                              setShowPlaylistInput((prevState) => ({
+                                ...prevState,
+                                [track.id]: !prevState[track.id],
+                              }))
+                            }
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="17"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-playlist-plus"
+                            >
+                              <path d="M3 4h10"></path>
+                              <path d="M3 8h10"></path>
+                              <path d="M3 12h6"></path>
+                              <path d="M16 7v6"></path>
+                              <path d="M13 10h6"></path>
+                            </svg>
+                          </button>
+                          {showPlaylistInput[track.id] && (
+                            <div className="playlist-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder="Enter playlist name..."
+                                value={playlistNames[track.id] || ""}
+                                onChange={(e) =>
+                                  setPlaylistNames((prevState) => ({
+                                    ...prevState,
+                                    [track.id]: e.target.value,
+                                  }))
+                                }
+                                className="playlist-input"
+                              />
+                              <button
+                                onClick={() => addPlaylist(track.id)}
+                                className="playlist-add-button"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {/* Browse section */}
           <section className="content-section">
@@ -709,22 +773,6 @@ export default function Listener() {
                 <Mic2 size={32} />
                 <span>Artists</span>
               </a>
-              <a
-                href="#"
-                className="browse-card"
-                style={{ backgroundColor: "#1e40af" }}
-              >
-                <Music size={32} />
-                <span>Albums</span>
-              </a>
-              <a
-                href="#"
-                className="browse-card"
-                style={{ backgroundColor: "#065f46" }}
-              >
-                <Radio size={32} />
-                <span>Podcasts</span>
-              </a>
             </div>
           </section>
         </div>
@@ -743,6 +791,39 @@ export default function Listener() {
         onNext={handleNext}
         onPrevious={handlePrevious}
       /> */}
+      {currentTrackIndex && (
+        <footer className="player-bar">
+          <div className="now-playing">
+            <img
+              src={
+                searchedAudio.find((song) => song.id === currentTrackIndex)?.imageUrl ||
+                "/placeholder.svg"
+              }
+              alt="Song cover"
+              className="track-cover"
+            />
+            <div className="track-info">
+              <h4 className="track-title">
+                {searchedAudio.find((song) => song.id === currentTrackIndex)?.name}
+              </h4>
+              {/* <p className="track-artist">{artist.artistName}</p> */}
+            </div>
+          </div>{" "}
+          <audio
+            controls
+            ref={audioRef}
+            src={searchedAudio.find((song) => song.id == currentTrackIndex).audioUrl}
+            // onPlay={setIsPlaying(true)}
+            // onPause={setIsPlaying(false)}
+            // onLoadedMetadata={handleMetadata}
+          />
+          {/* <AudioPlayer
+            autoPlay
+            src={audios.find((song) => song.Id == currentSongId).audioUrl}
+            onPlay={(e) => console.log("onPlay")}
+          /> */}
+        </footer>
+      )}
     </div>
   );
 }

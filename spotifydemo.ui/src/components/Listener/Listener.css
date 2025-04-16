@@ -558,7 +558,7 @@ td {
 
 .track-duration {
   color: var(--text-subdued);
-  text-align: right;
+  text-align: left;
 }
 
 /* Playlist grid */
