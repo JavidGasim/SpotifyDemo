@@ -24,9 +24,10 @@ import Cookies from "js-cookie";
 
 export default function Listener() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
+  // const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const [currentSongId, setCurrentSongId] = useState("");
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -65,187 +66,6 @@ export default function Listener() {
     CurrentUser();
   }, []);
 
-  // Simulate fetching user data
-  const user = {
-    name: "John Doe",
-    avatar: "/placeholder.svg?height=40&width=40",
-    premium: true,
-  };
-
-  // Simulate fetching recently played
-  const recentlyPlayed = [
-    {
-      id: 1,
-      title: "Blinding Lights",
-      artist: "The Weeknd",
-      album: "After Hours",
-      cover: "/placeholder.svg?height=150&width=150",
-      audioUrl: "https://example.com/audio/blinding-lights.mp3", // This would be a real URL in production
-      duration: 203,
-      explicit: false,
-    },
-    {
-      id: 2,
-      title: "As It Was",
-      artist: "Harry Styles",
-      album: "Harry's House",
-      cover: "/placeholder.svg?height=150&width=150",
-      audioUrl: "https://example.com/audio/as-it-was.mp3",
-      duration: 167,
-      explicit: false,
-    },
-    {
-      id: 3,
-      title: "Bad Habit",
-      artist: "Steve Lacy",
-      album: "Gemini Rights",
-      cover: "/placeholder.svg?height=150&width=150",
-      audioUrl: "https://example.com/audio/bad-habit.mp3",
-      duration: 232,
-      explicit: true,
-    },
-    {
-      id: 4,
-      title: "Running Up That Hill",
-      artist: "Kate Bush",
-      album: "Hounds of Love",
-      cover: "/placeholder.svg?height=150&width=150",
-      audioUrl: "https://example.com/audio/running-up-that-hill.mp3",
-      duration: 298,
-      explicit: false,
-    },
-    {
-      id: 5,
-      title: "Heat Waves",
-      artist: "Glass Animals",
-      album: "Dreamland",
-      cover: "/placeholder.svg?height=150&width=150",
-      audioUrl: "https://example.com/audio/heat-waves.mp3",
-      duration: 238,
-      explicit: false,
-    },
-  ];
-
-  // Simulate fetching featured playlists
-  const featuredPlaylists = [
-    {
-      id: 1,
-      title: "Discover Weekly",
-      description: "Your weekly mixtape of fresh music",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 30,
-      curator: "Melodify",
-    },
-    {
-      id: 2,
-      title: "Release Radar",
-      description: "Catch all the latest music from artists you follow",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 25,
-      curator: "Melodify",
-    },
-    {
-      id: 3,
-      title: "Daily Mix 1",
-      description: "Kendrick Lamar, J. Cole, Drake and more",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 20,
-      curator: "Melodify",
-    },
-    {
-      id: 4,
-      title: "Chill Vibes",
-      description: "Relaxing beats for your evening",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 40,
-      curator: "Melodify",
-    },
-    {
-      id: 5,
-      title: "Workout Energy",
-      description: "Boost your workout with these energetic tracks",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 35,
-      curator: "Melodify",
-    },
-    {
-      id: 6,
-      title: "Indie Discoveries",
-      description: "Fresh indie tracks you need to hear",
-      cover: "/placeholder.svg?height=200&width=200",
-      tracks: 28,
-      curator: "Melodify",
-    },
-  ];
-
-  // Simulate fetching your playlists
-  const yourPlaylists = [
-    {
-      id: 1,
-      title: "Favorite Songs",
-      cover: "/placeholder.svg?height=80&width=80",
-      tracks: 124,
-    },
-    {
-      id: 2,
-      title: "Summer Hits",
-      cover: "/placeholder.svg?height=80&width=80",
-      tracks: 45,
-    },
-    {
-      id: 3,
-      title: "Throwbacks",
-      cover: "/placeholder.svg?height=80&width=80",
-      tracks: 78,
-    },
-    {
-      id: 4,
-      title: "Indie Mix",
-      cover: "/placeholder.svg?height=80&width=80",
-      tracks: 56,
-    },
-    {
-      id: 5,
-      title: "Chill Lofi",
-      cover: "/placeholder.svg?height=80&width=80",
-      tracks: 92,
-    },
-  ];
-
-  // Simulate fetching top artists
-  const topArtists = [
-    {
-      id: 1,
-      name: "The Weeknd",
-      cover: "/placeholder.svg?height=150&width=150",
-      followers: "85.4M",
-    },
-    {
-      id: 2,
-      name: "Billie Eilish",
-      cover: "/placeholder.svg?height=150&width=150",
-      followers: "72.1M",
-    },
-    {
-      id: 3,
-      name: "Drake",
-      cover: "/placeholder.svg?height=150&width=150",
-      followers: "68.9M",
-    },
-    {
-      id: 4,
-      name: "Taylor Swift",
-      cover: "/placeholder.svg?height=150&width=150",
-      followers: "92.3M",
-    },
-    {
-      id: 5,
-      name: "Kendrick Lamar",
-      cover: "/placeholder.svg?height=150&width=150",
-      followers: "45.7M",
-    },
-  ];
-
   const audioRefs = useRef({});
 
   const handleMetadataLoaded = (id, duration) => {
@@ -262,15 +82,17 @@ export default function Listener() {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-    const audioRef = useRef(null);
+  const audioRef = useRef(null);
 
   const playSong = async (songId) => {
-    if (currentTrackIndex === songId && isPlaying) {
+    if (currentSongId === songId && isPlaying) {
       setIsPlaying(false);
       audioRef.current.pause();
+      console.log("stopped");
     } else {
-      setCurrentTrackIndex(songId);
+      setCurrentSongId(songId);
       setIsPlaying(true);
+      console.log("playing");
 
       // const audio = audioRef.current;
       // console.log(audio.duration);
@@ -284,25 +106,10 @@ export default function Listener() {
       // setCurrentTime(0);
 
       // If we had actual audio:
-      // audioRef.current.src = audios.find((song) => song.id === songId).audioUrl;
+      // audioRef.current.src = searchedAudio.find(
+      //   (song) => song.id === songId
+      // ).audioUrl;
       // audioRef.current.play();
-    }
-  };
-
-  const handleNext = () => {
-    if (currentTrackIndex !== null) {
-      const nextIndex = (currentTrackIndex + 1) % recentlyPlayed.length;
-      setCurrentTrackIndex(nextIndex);
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTrackIndex !== null) {
-      const prevIndex =
-        (currentTrackIndex - 1 + recentlyPlayed.length) % recentlyPlayed.length;
-      setCurrentTrackIndex(prevIndex);
-      setIsPlaying(true);
     }
   };
 
@@ -399,10 +206,10 @@ export default function Listener() {
       });
   };
 
-  useState(() => {
+  useEffect(() => {
     getSinger();
     console.log(singer);
-  });
+  }, []);
 
   const handleInputChange = (e) => {
     setQuery(e.target.value);
@@ -452,6 +259,35 @@ export default function Listener() {
       alert("Failed to add playlist.");
     }
   }
+
+  const [playLists, setPlaylists] = useState([]);
+
+  async function getPlaylists() {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+    const url = generalUrl + `allPlayLists`;
+
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data.playLists);
+        setPlaylists(response.data.playLists);
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      });
+  }
+
+  const handlePlaylist = () => {
+    getPlaylists();
+    console.log(playLists);
+  };
 
   return (
     <div className="listener-page">
@@ -600,57 +436,48 @@ export default function Listener() {
                     {searchedAudio.map((track, index) => (
                       <tr
                         key={track.id}
-                        className={`track-row ${
-                          currentTrackIndex === index ? "active-track" : ""
-                        }`}
-                        onClick={() => playSong(index)}
+                        className={
+                          currentSongId === track.id ? "active-song" : ""
+                        }
+                        // onClick={() => playSong(index)}
                       >
-                        <td
-                          className="track-number"
-                          style={{ textAlign: "left", padding: "0px" }}
-                        >
-                          <div className="track-number-container">
-                            <span className="track-index">{index + 1}</span>
-                            <button
-                              className="track-play-button"
-                              onClick={() => playSong(index)}
-                            >
-                              {currentTrackIndex === index && isPlaying ? (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="currentColor"
-                                  stroke="none"
-                                >
-                                  <rect
-                                    x="6"
-                                    y="4"
-                                    width="4"
-                                    height="16"
-                                  ></rect>
-                                  <rect
-                                    x="14"
-                                    y="4"
-                                    width="4"
-                                    height="16"
-                                  ></rect>
-                                </svg>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="currentColor"
-                                  stroke="none"
-                                >
-                                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                </svg>
-                              )}
-                            </button>
-                          </div>
+                        <td style={{ padding: "0", verticalAlign: "top" }}>
+                          <button
+                            className="play-button"
+                            style={{ margin: "0" }}
+                            onClick={() => playSong(track.id)}
+                          >
+                            {currentSongId === track.id && isPlaying ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                              </svg>
+                            )}
+                          </button>
                         </td>
                         <td>
                           {" "}
@@ -757,62 +584,63 @@ export default function Listener() {
               <h2>Browse</h2>
             </div>
             <div className="browse-grid">
-              <a
-                href="#"
+              <button
+                // href="#"
+                onClick={handlePlaylist}
                 className="browse-card"
                 style={{ backgroundColor: "#4c1d95" }}
               >
                 <ListMusic size={32} />
                 <span>Playlists</span>
-              </a>
-              <a
-                href="#"
+              </button>
+              <button
+                // href="#"
                 className="browse-card"
                 style={{ backgroundColor: "#be185d" }}
               >
                 <Mic2 size={32} />
                 <span>Artists</span>
-              </a>
+              </button>
             </div>
           </section>
         </div>
       </main>
 
       {/* Audio Player Footer */}
-      {/* <div
-        currentSong={
-          currentTrackIndex !== null ? recentlyPlayed[currentTrackIndex] : null
-        }
-        artistName={
-          currentTrackIndex !== null
-            ? recentlyPlayed[currentTrackIndex].artist
-            : ""
-        }
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      /> */}
-      {currentTrackIndex && (
+      {currentSongId && (
         <footer className="player-bar">
+          {console.log(currentSongId)}
           <div className="now-playing">
             <img
               src={
-                searchedAudio.find((song) => song.id === currentTrackIndex)?.imageUrl ||
-                "/placeholder.svg"
+                searchedAudio.find((song) => song.id === currentSongId)
+                  ?.imageUrl || "/placeholder.svg"
               }
               alt="Song cover"
               className="track-cover"
             />
             <div className="track-info">
-              <h4 className="track-title">
-                {searchedAudio.find((song) => song.id === currentTrackIndex)?.name}
-              </h4>
+              <span className="track-name">
+                {Array.isArray(singer) &&
+                  singer.find(
+                    (s) =>
+                      s.id ==
+                      searchedAudio.find((song) => song.id === currentSongId)
+                        ?.userId
+                  )?.userName}
+                <span> - </span>
+                {searchedAudio.find((song) => song.id === currentSongId)?.name}
+              </span>
+              {/* <h4 className="track-title"></h4> */}
               {/* <p className="track-artist">{artist.artistName}</p> */}
             </div>
           </div>{" "}
           <audio
             controls
             ref={audioRef}
-            src={searchedAudio.find((song) => song.id == currentTrackIndex).audioUrl}
+            src={
+              searchedAudio.find((song) => song.id == currentSongId).audioUrl
+            }
             // onPlay={setIsPlaying(true)}
             // onPause={setIsPlaying(false)}
             // onLoadedMetadata={handleMetadata}
@@ -823,6 +651,14 @@ export default function Listener() {
             onPlay={(e) => console.log("onPlay")}
           /> */}
         </footer>
+      )}
+
+      {playLists && (
+        <div>
+          {playLists.map((playList, index) => {
+            <h1>{playList.name}</h1>;
+          })}
+        </div>
       )}
     </div>
   );
