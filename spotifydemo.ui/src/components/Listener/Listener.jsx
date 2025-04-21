@@ -2,22 +2,7 @@ import { useState, useRef, useEffect } from "react";
 // import Link from "next/link";
 // import AudioPlayerFooter from "@/components/audio-player-footer";
 import "../Listener/Listener.css";
-import {
-  Home,
-  Search,
-  Library,
-  Plus,
-  Heart,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  ChevronDown,
-  ListMusic,
-  Radio,
-  Mic2,
-  Music,
-} from "lucide-react";
+import { Clock, ListMusic, Mic2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -134,10 +119,10 @@ export default function Listener() {
     const name = Cookies.get("username");
     const token = Cookies.get(name);
 
-    // if (!query.trim()) {
-    //   alert("Search term cannot be empty.");
-    //   return;
-    // }
+    if (!query.trim()) {
+      alert("Search term cannot be empty.");
+      return;
+    }
     const url = generalUrl + `searchAudio/${query}`;
     console.log("Query:", query);
     console.log("URL:", url);
@@ -276,6 +261,7 @@ export default function Listener() {
       .then((response) => {
         console.log(response.data.playLists);
         setPlaylists(response.data.playLists);
+        // alert(response.data.playLists[0].name);
       })
       .catch((error) => {
         console.log(error);
@@ -285,8 +271,48 @@ export default function Listener() {
   }
 
   const handlePlaylist = () => {
-    getPlaylists();
-    console.log(playLists);
+    if (playLists.length < 1) {
+      getPlaylists();
+      console.log(playLists);
+    } else {
+      setPlaylists([]);
+    }
+  };
+
+  const [allArtists, setAllArtists] = useState([]);
+
+  const getAllArtists = async () => {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+
+    const url = generalUrl + `getAllUsers`;
+
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        console.log(response.data.users);
+        setAllArtists(response.data.users);
+        console.log(allArtists);
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      });
+  };
+
+  const handleArtists = () => {
+    if (allArtists.length < 1) {
+      getAllArtists();
+      console.log(allArtists);
+    } else {
+      setAllArtists([]);
+    }
   };
 
   return (
@@ -597,12 +623,58 @@ export default function Listener() {
                 // href="#"
                 className="browse-card"
                 style={{ backgroundColor: "#be185d" }}
+                onClick={handleArtists}
               >
                 <Mic2 size={32} />
                 <span>Artists</span>
               </button>
             </div>
           </section>
+
+          {playLists.length > 0 && (
+            <div>
+              <section className="content-section">
+                <div className="section-header">
+                  <h2>Playlists</h2>
+                </div>
+
+                <div className="track-table-container">
+                  <table className="track-table">
+                    <thead>
+                      <tr>
+                        <th className="track-number">#</th>
+                        <th className="track-album">Playlist Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {playLists.map((playList, index) => (
+                        <tr
+                          key={playList.id}
+                          className={
+                            currentSongId === playList.id ? "active-song" : ""
+                          }
+                          onClick={() => {
+                            navigate(`/playlist/${playList.name}`);
+                          }}
+                        >
+                          <td style={{ padding: "0", verticalAlign: "top" }}>
+                            <button>{index + 1}</button>
+                          </td>
+                          <td className="track-title">
+                            <span className="track-name">{playList.name}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {allArtists.length > 0 && (
+            <button onClick={() => navigate("/allArtists")}>All artists</button>
+          )}
         </div>
       </main>
 
@@ -651,14 +723,6 @@ export default function Listener() {
             onPlay={(e) => console.log("onPlay")}
           /> */}
         </footer>
-      )}
-
-      {playLists && (
-        <div>
-          {playLists.map((playList, index) => {
-            <h1>{playList.name}</h1>;
-          })}
-        </div>
       )}
     </div>
   );

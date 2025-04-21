@@ -190,7 +190,16 @@ namespace Identity.WebApi.Controllers
                 //await _fileService.SetDataAsync(_filePath, "No users found!");
                 return NotFound(new { Message = "No users found" });
             }
-            var userDtos = _mapper.Map<List<UserDTO>>(users);
+
+            var userDtos = new List<UserDTO>();
+
+            foreach (var user in users)
+            {
+                var dto = _mapper.Map<UserDTO>(user);
+                var roles = await _userManager.GetRolesAsync(user);
+                dto.Roles = roles.ToList(); // Rolları əlavə et
+                userDtos.Add(dto);
+            }
             //await _fileService.SetDataAsync(_filePath, "Users found succesfully!");
             return Ok(new { Users = userDtos });
         }
