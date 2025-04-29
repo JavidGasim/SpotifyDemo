@@ -126,7 +126,7 @@ namespace Music.WebApi.Controllers
         }
 
         [HttpPost("playList")]
-        public async Task<IActionResult> CreatePlayList(string name, int audioId)
+        public async Task<IActionResult> CreatePlayList(string name, int audioId, string creatorId)
         {
             var playList = await _playListService.GetByNameAsync(name);
 
@@ -134,7 +134,8 @@ namespace Music.WebApi.Controllers
             {
                 var newPlayList = new PlayList
                 {
-                    Name = name
+                    Name = name,
+                    CreatorId = creatorId
                 };
 
                 await _playListService.AddAsync(newPlayList);

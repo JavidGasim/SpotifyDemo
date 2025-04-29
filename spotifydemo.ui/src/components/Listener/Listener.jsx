@@ -225,7 +225,9 @@ export default function Listener() {
     try {
       const username = Cookies.get("username");
       const token = Cookies.get(username);
-      const url = generalUrl + `playList?name=${name}&audioId=${audioId}`;
+      const url =
+        generalUrl +
+        `playList?name=${name}&audioId=${audioId}&creatorId=${artist.id}`;
       await axios.post(
         url,
         {},
@@ -246,6 +248,7 @@ export default function Listener() {
   }
 
   const [playLists, setPlaylists] = useState([]);
+  const [myplayLists, setMyPlaylists] = useState([]);
 
   async function getPlaylists() {
     const name = Cookies.get("username");
@@ -270,12 +273,48 @@ export default function Listener() {
       });
   }
 
+  async function getMyPlaylists() {
+    const name = Cookies.get("username");
+    const token = Cookies.get(name);
+    const url = generalUrl + `allPlayLists`;
+
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data.playLists);
+        response.data.playLists.forEach((playList) => {
+          if (playList.creatorId === artist.id) {
+            setMyPlaylists(response.data.playLists);
+          }
+        });
+        // alert(response.data.playLists[0].name);
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log(error.response);
+        alert(error.response?.data?.message);
+      });
+  }
+
   const handlePlaylist = () => {
     if (playLists.length < 1) {
       getPlaylists();
       console.log(playLists);
     } else {
       setPlaylists([]);
+    }
+  };
+
+  const handleMyPlaylist = () => {
+    if (playLists.length < 1) {
+      getMyPlaylists();
+      console.log(playLists);
+    } else {
+      setMyPlaylists([]);
     }
   };
 
@@ -612,6 +651,15 @@ export default function Listener() {
             <div className="browse-grid">
               <button
                 // href="#"
+                onClick={handleMyPlaylist}
+                className="browse-card"
+                style={{ backgroundColor: "orange" }}
+              >
+                <ListMusic size={32} />
+                <span>My Playlists</span>
+              </button>
+              <button
+                // href="#"
                 onClick={handlePlaylist}
                 className="browse-card"
                 style={{ backgroundColor: "#4c1d95" }}
@@ -630,6 +678,47 @@ export default function Listener() {
               </button>
             </div>
           </section>
+
+          {myplayLists.length > 0 && (
+            <div>
+              <section className="content-section">
+                <div className="section-header">
+                  <h2>My Playlists</h2>
+                </div>
+
+                <div className="track-table-container">
+                  <table className="track-table">
+                    <thead>
+                      <tr>
+                        <th className="track-number">#</th>
+                        <th className="track-album">Playlist Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myplayLists.map((playList, index) => (
+                        <tr
+                          key={playList.id}
+                          className={
+                            currentSongId === playList.id ? "active-song" : ""
+                          }
+                          onClick={() => {
+                            navigate(`/playlist/${playList.name}`);
+                          }}
+                        >
+                          <td style={{ padding: "0", verticalAlign: "top" }}>
+                            <button>{index + 1}</button>
+                          </td>
+                          <td className="track-title">
+                            <span className="track-name">{playList.name}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          )}
 
           {playLists.length > 0 && (
             <div>
