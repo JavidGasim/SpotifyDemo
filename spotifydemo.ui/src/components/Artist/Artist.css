@@ -266,6 +266,7 @@
 .song-actions {
   display: flex;
   gap: 8px;
+  /* text-align: right; */
 }
 
 .action-button {

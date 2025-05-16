@@ -190,6 +190,7 @@ export default function Artist() {
   };
 
   // Handle file inputs
+  const [audioLoad, setAudioLoad] = useState(false);
   const handleFileChange = async (e) => {
     const { name, files } = e.target;
 
@@ -238,6 +239,7 @@ export default function Artist() {
           ...prevdata,
           coverArt: response.data.imageUrl,
         }));
+        setCoverArtPreview(response.data.imageUrl);
         console.log(formData.coverArt);
 
         console.log("Şəkil yükləndi:", response.data.imageUrl);
@@ -254,6 +256,7 @@ export default function Artist() {
         return;
       }
 
+      setAudioLoad(true);
       const formData2 = new FormData();
       formData2.append("file", file);
 
@@ -267,6 +270,7 @@ export default function Artist() {
           ...prevdata,
           audioFile: response.data.audioUrl,
         }));
+        setAudioFileName(response.data.audioUrl);
         console.log(formData.audioFile);
 
         console.log("Audio url => ", response.data.audioUrl);
@@ -274,6 +278,8 @@ export default function Artist() {
       } catch (error) {
         console.error("Audio upload failed", error);
         // alert(error.response.data.message);
+      } finally {
+        setAudioLoad(false);
       }
     }
   };
@@ -299,11 +305,11 @@ export default function Artist() {
       id: song.id,
       title: song.title,
       name: song.name,
-      coverArt: null,
+      coverArt: song.coverArt,
       audioFile: null,
     });
-    setCoverArtPreview(song.coverArt);
-    setAudioFileName("Current audio file");
+    setCoverArtPreview(song.imageUrl);
+    setAudioFileName(song.audioUrl);
     setShowEditForm(true);
     setShowAddForm(false);
   };
@@ -315,6 +321,9 @@ export default function Artist() {
   };
 
   // Handle form submission
+
+  const [updateLoading, setUpdateLoading] = useState(false);
+  // const [addLoading, setAddLoading] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -327,6 +336,8 @@ export default function Artist() {
         audioUrl: formData.audioFile,
         userId: artist.id,
       };
+      // addLoading(true);
+      setUpdateLoading(true);
 
       console.log(obj.audioUrl);
       console.log(obj.imageUrl);
@@ -347,11 +358,16 @@ export default function Artist() {
         })
         .then((response) => {
           alert("Audio Added Successfully");
+          AllAudios();
           navigate("/artist");
         })
         .catch((error) => {
           alert(error.response.data.message);
           console.error("Yükləmə xətası:", error);
+        })
+        .finally(() => {
+          // addLoading(false);
+          setUpdateLoading(false);
         });
     } else if (showEditForm) {
       // Update existing song
@@ -369,6 +385,7 @@ export default function Artist() {
       // });
 
       // setAudios(updatedSongs);
+      setUpdateLoading(true);
       var obj = {
         id: formData.id,
         name: formData.name,
@@ -396,13 +413,16 @@ export default function Artist() {
           },
         })
         .then((response) => {
-          alert("Audio Updated Successfully");
+          // alert("Audio Updated Successfully");
           // navigate("/artist");
           navigate(0);
         })
         .catch((error) => {
-          alert(error.response.data.message);
+          // alert(error.response.data.message);
           console.error("Yükləmə xətası:", error);
+        })
+        .finally(() => {
+          setUpdateLoading(false);
         });
     }
 
@@ -482,7 +502,18 @@ export default function Artist() {
             </h1>
           </div>
           <div className="auth-buttons">
-            <button className="sign-in-button" onClick={() => navigate("/")}>
+            <button
+              className="sign-in-button"
+              onClick={() => {
+                const allCookies = Cookies.get();
+
+                for (let cookieName in allCookies) {
+                  Cookies.remove(cookieName);
+                }
+
+                navigate("/");
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -531,22 +562,6 @@ export default function Artist() {
               <div className="stat-value">{audios.length}</div>
               <div className="stat-label">Songs</div>
             </div>
-            <div className="stat-card">
-              <div className="stat-value">
-                {audios
-                  .reduce((sum, song) => sum + song.plays, 0)
-                  .toLocaleString()}
-              </div>
-              <div className="stat-label">Total Plays</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">
-                {audios
-                  .reduce((sum, song) => sum + song.likes, 0)
-                  .toLocaleString()}
-              </div>
-              <div className="stat-label">Total Likes</div>
-            </div>
           </section>
 
           {/* Songs section */}
@@ -585,122 +600,132 @@ export default function Artist() {
                   <thead>
                     <tr>
                       <th style={{ width: "50px" }}>#</th>
-                      <th style={{ width: "40%" }}>Title</th>
-                      {/* <th>Release Date</th>
-                      <th>Duration</th>
-                      <th>Plays</th>
-                      <th>Likes</th>
-                      <th>Actions</th> */}
+                      <th style={{ width: "90%" }}>Title</th>
+                      <th style={{ width: "10%" }}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {audios.map((song, index) => (
-                      <tr
-                        key={song.id}
-                        className={
-                          currentSongId === song.id ? "active-song" : ""
-                        }
-                      >
-                        <td>
-                          <button
-                            className="play-button"
-                            onClick={() => playSong(song.id)}
-                          >
-                            {currentSongId === song.id && isPlaying ? (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                              </svg>
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                              </svg>
-                            )}
-                          </button>
-                        </td>
-                        <td>
-                          <div className="song-info">
-                            <img
-                              src={song.imageUrl || "/placeholder.svg"}
-                              alt={song.title}
-                              className="song-cover"
-                            />
-                            <span className="song-title">{artist.name} - {song.name}</span>
-                          </div>
-                        </td>
-                        {/* <td>{formatDate(song.releaseDate)}</td>
-                        <td>{formatTime(song.duration)}</td>
-                        <td>{song.plays.toLocaleString()}</td>
-                        <td>{song.likes.toLocaleString()}</td> */}
-                        <td>
-                          <div className="song-actions">
+                  {loading ? (
+                    <div>
+                      <img src="/loading.gif" alt="Loading..." />
+                    </div>
+                  ) : (
+                    <tbody>
+                      {audios.map((song, index) => (
+                        <tr
+                          key={song.id}
+                          className={
+                            currentSongId === song.id ? "active-song" : ""
+                          }
+                        >
+                          <td>
                             <button
-                              className="action-button edit"
-                              onClick={() => openEditForm(song)}
-                              title="Edit song"
+                              className="play-button"
+                              onClick={() => playSong(song.id)}
                             >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                              </svg>
+                              {currentSongId === song.id && isPlaying ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <rect
+                                    x="6"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                  <rect
+                                    x="14"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                              )}
                             </button>
-                            <button
-                              className="action-button delete"
-                              onClick={() => deleteSong(song.id)}
-                              title="Delete song"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
+                          </td>
+                          <td>
+                            <div className="song-info">
+                              <img
+                                src={song.imageUrl || "/placeholder.svg"}
+                                alt={song.title}
+                                className="song-cover"
+                              />
+                              <span className="song-title">
+                                {artist.name} - {song.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="song-actions">
+                              <button
+                                className="action-button edit"
+                                onClick={() => openEditForm(song)}
+                                title="Edit song"
                               >
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                              </svg>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                              </button>
+                              <button
+                                className="action-button delete"
+                                onClick={() => deleteSong(song.id)}
+                                title="Delete song"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
                 </table>
               </div>
             )}
@@ -744,138 +769,129 @@ export default function Artist() {
       )}
 
       {/* Add/Edit Song Modal */}
-      {(showAddForm || showEditForm) && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{showAddForm ? "Add New Song" : "Edit Song"}</h2>
-              <button className="close-button" onClick={closeForm}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+      {(showAddForm || showEditForm) &&
+        (updateLoading ? (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <img src="/loading.gif" alt="loading" />
+              </div>
             </div>
-
-            <form onSubmit={handleSubmit} className="song-form">
-              <div className="form-group">
-                <label htmlFor="title">Song Title</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Enter song title"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="name">Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  placeholder="Enter song name"
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Cover Art</label>
-                <div className="file-upload-container">
-                  <div
-                    className="cover-art-preview"
-                    onClick={() => triggerFileInput(coverArtInputRef)}
-                    style={{
-                      backgroundImage: coverArtPreview
-                        ? `url(${coverArtPreview})`
-                        : "none",
-                    }}
+          </div>
+        ) : (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h2>{showAddForm ? "Add New Song" : "Edit Song"}</h2>
+                <button className="close-button" onClick={closeForm}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    {!coverArtPreview && (
-                      <div className="upload-placeholder">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect
-                            x="3"
-                            y="3"
-                            width="18"
-                            height="18"
-                            rx="2"
-                            ry="2"
-                          ></rect>
-                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                          <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-                        <span>Click to upload cover art</span>
-                      </div>
-                    )}
-                  </div>
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="song-form">
+                <div className="form-group">
+                  <label htmlFor="title">Song Title</label>
                   <input
-                    type="file"
-                    ref={coverArtInputRef}
-                    name="coverArt"
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    className="file-input"
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="Enter song title"
+                    required
                   />
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label>Audio File</label>
-                <div className="audio-upload-container">
-                  <button
-                    type="button"
-                    className="audio-upload-button"
-                    onClick={() => triggerFileInput(audioFileInputRef)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                <div className="form-group">
+                  <label htmlFor="name">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    placeholder="Enter song name"
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Cover Art</label>
+                  <div className="file-upload-container">
+                    <div
+                      className="cover-art-preview"
+                      onClick={() => triggerFileInput(coverArtInputRef)}
+                      style={{
+                        backgroundImage: coverArtPreview
+                          ? `url(${coverArtPreview})`
+                          : "none",
+                      }}
                     >
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    {audioFileName ? "Change audio file" : "Upload audio file"}
-                  </button>
-                  {audioFileName && (
-                    <div className="file-name">
+                      {!coverArtPreview && (
+                        <div className="upload-placeholder">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect
+                              x="3"
+                              y="3"
+                              width="18"
+                              height="18"
+                              rx="2"
+                              ry="2"
+                            ></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                          </svg>
+                          <span>Click to upload cover art</span>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={coverArtInputRef}
+                      name="coverArt"
+                      // value={formData.coverArt}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="file-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Audio File</label>
+                  <div className="audio-upload-container">
+                    <button
+                      type="button"
+                      className="audio-upload-button"
+                      onClick={() => triggerFileInput(audioFileInputRef)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
+                        width="20"
+                        height="20"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -883,40 +899,75 @@ export default function Artist() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        <path d="M12 18c0-5.3-8-5.3-8-10a4 4 0 0 1 8 0v1a4 4 0 0 1-8 0"></path>
-                        <line x1="8" y1="22" x2="8" y2="18"></line>
-                        <line x1="12" y1="22" x2="12" y2="18"></line>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
-                      {audioFileName}
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    ref={audioFileInputRef}
-                    name="audioFile"
-                    onChange={handleFileChange}
-                    accept="audio/*"
-                    className="file-input"
-                  />
+                      {audioFileName
+                        ? "Change audio file"
+                        : "Upload audio file"}
+                    </button>
+                    {audioLoad && (
+                      <div>
+                        <img
+                          style={{ width: "70px" }}
+                          src="loading.gif"
+                          alt="Loading"
+                        />
+                      </div>
+                    )}
+                    {audioFileName && (
+                      <div className="file-name">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 18c0-5.3-8-5.3-8-10a4 4 0 0 1 8 0v1a4 4 0 0 1-8 0"></path>
+                          <line x1="8" y1="22" x2="8" y2="18"></line>
+                          <line x1="12" y1="22" x2="12" y2="18"></line>
+                        </svg>
+                        {/* {audioFileName} */}
+                        <audio
+                          controls
+                          src={audioFileName}
+                          className="audio-preview"
+                        ></audio>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      ref={audioFileInputRef}
+                      name="audioFile"
+                      onChange={handleFileChange}
+                      accept="audio/*"
+                      className="file-input"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={closeForm}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="submit-button">
-                  {showAddForm ? "Add Song" : "Update Song"}
-                </button>
-              </div>
-            </form>
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="cancel-button"
+                    onClick={closeForm}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="submit-button">
+                    {showAddForm ? "Add Song" : "Update Song"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
     </div>
   );
 }

@@ -42,7 +42,7 @@ export default function AllArtists() {
   }, []);
 
   return (
-    <div className="listener-page" style={{height:"100vh"}}>
+    <div className="listener-page" style={{ height: "100vh" }}>
       {/* Main content */}
       <main className="main-content3">
         <nav className="navbar">
@@ -52,7 +52,18 @@ export default function AllArtists() {
             </h1>
           </div>
           <div className="auth-buttons">
-            <button className="sign-in-button" onClick={() => navigate("/")}>
+            <button
+              className="sign-in-button"
+              onClick={() => {
+                const allCookies = Cookies.get();
+
+                for (let cookieName in allCookies) {
+                  Cookies.remove(cookieName);
+                }
+
+                navigate("/");
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -75,7 +86,38 @@ export default function AllArtists() {
         </nav>
         <div className="content-wrapper">
           <section className="content-section">
-            <div className="section-header">
+            <div className="section-header3">
+              <button
+                onClick={() => window.history.back()}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "10px 16px",
+                  backgroundColor: "transparent", // Buttonun arxa fonu qara
+                  color: "white", // Yazı rəngi ağ
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white" // Oxun rəngi ağ
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Back
+              </button>
+
               <h2>All Artists</h2>
             </div>
             <div className="track-table-container">
@@ -91,7 +133,10 @@ export default function AllArtists() {
                 </thead>
                 <tbody>
                   {allArtists.map((artist, index) => (
-                    <tr key={artist.id} onClick={() => navigate(`/selectedArtist/${artist.id}`)}>
+                    <tr
+                      key={artist.id}
+                      onClick={() => navigate(`/selectedArtist/${artist.id}`)}
+                    >
                       <td style={{ padding: "0", verticalAlign: "top" }}>
                         <button className="play-button" style={{ margin: "0" }}>
                           {index + 1}

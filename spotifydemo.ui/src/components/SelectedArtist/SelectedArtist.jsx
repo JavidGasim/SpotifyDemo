@@ -108,7 +108,18 @@ export default function SelectedArtist() {
             </h1>
           </div>
           <div className="auth-buttons">
-            <button className="sign-in-button" onClick={() => navigate("/")}>
+            <button
+              className="sign-in-button"
+              onClick={() => {
+                const allCookies = Cookies.get();
+
+                for (let cookieName in allCookies) {
+                  Cookies.remove(cookieName);
+                }
+
+                navigate("/");
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"

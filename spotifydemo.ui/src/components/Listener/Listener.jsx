@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 // import Link from "next/link";
 // import AudioPlayerFooter from "@/components/audio-player-footer";
 import "../Listener/Listener.css";
-import { Clock, ListMusic, Mic2 } from "lucide-react";
+import { Clock, Cookie, ListMusic, Mic2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -310,7 +310,7 @@ export default function Listener() {
   };
 
   const handleMyPlaylist = () => {
-    if (playLists.length < 1) {
+    if (myplayLists.length < 1) {
       getMyPlaylists();
       console.log(playLists);
     } else {
@@ -393,7 +393,15 @@ export default function Listener() {
             </button>
           </div>
           <div className="auth-buttons">
-            <button className="sign-in-button" onClick={() => navigate("/")}>
+            <button className="sign-in-button" onClick={() => {
+                const allCookies = Cookies.get();
+                
+                for (let cookieName in allCookies) {
+                  Cookies.remove(cookieName);
+                }
+
+                navigate("/");
+            }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
