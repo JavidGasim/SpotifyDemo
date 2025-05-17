@@ -140,6 +140,47 @@ export default function SelectedArtist() {
             </button>
           </div>
         </nav>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            marginLeft: "5px",
+            marginTop: "5px",
+            marginBottom: "5px",
+          }}
+        >
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "10px 16px",
+              backgroundColor: "transparent", // Buttonun arxa fonu qara
+              color: "white", // Yazı rəngi ağ
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white" // Oxun rəngi ağ
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Back
+          </button>
+        </div>
         <div className="artist-header">
           <div className="artist-header-overlay">
             <div className="artist-profile">

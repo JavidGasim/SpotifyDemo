@@ -115,7 +115,9 @@ export default function Listener() {
   const [query, setQuery] = useState("");
   const [searchedAudio, setSearchedAudio] = useState([]);
 
+  const [loadSearch, setLoadSearch] = useState(false);
   const searchAudio = async () => {
+    setLoadSearch(true);
     const name = Cookies.get("username");
     const token = Cookies.get(name);
 
@@ -146,6 +148,9 @@ export default function Listener() {
         console.log(error);
         console.log(error.response);
         alert(error.response?.data?.message);
+      })
+      .finally(() => {
+        setLoadSearch(false);
       });
   };
 
@@ -393,15 +398,18 @@ export default function Listener() {
             </button>
           </div>
           <div className="auth-buttons">
-            <button className="sign-in-button" onClick={() => {
+            <button
+              className="sign-in-button"
+              onClick={() => {
                 const allCookies = Cookies.get();
-                
+
                 for (let cookieName in allCookies) {
                   Cookies.remove(cookieName);
                 }
 
                 navigate("/");
-            }}>
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -489,164 +497,183 @@ export default function Listener() {
             <section className="content-section">
               <div className="section-header">
                 <h2>Results</h2>
+                <button onClick={() => window.location.reload()}>
+                  Reset Search
+                </button>
               </div>
 
               <div className="track-table-container">
-                <table className="track-table">
-                  <thead>
-                    <tr>
-                      <th className="track-number">#</th>
-                      <th className="track-title">Cover</th>
-                      <th className="track-album">Track Name</th>
-                      <th className="track-album">Singer Name</th>
-                      <th className="track-duration">
-                        <Clock size={16} />
-                      </th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {searchedAudio.map((track, index) => (
-                      <tr
-                        key={track.id}
-                        className={
-                          currentSongId === track.id ? "active-song" : ""
-                        }
-                        // onClick={() => playSong(index)}
-                      >
-                        <td style={{ padding: "0", verticalAlign: "top" }}>
-                          <button
-                            className="play-button"
-                            style={{ margin: "0" }}
-                            onClick={() => playSong(track.id)}
-                          >
-                            {currentSongId === track.id && isPlaying ? (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                              </svg>
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                              </svg>
-                            )}
-                          </button>
-                        </td>
-                        <td>
-                          {" "}
-                          <img
-                            src={track.imageUrl || "/placeholder.svg"}
-                            alt={track.title}
-                            className="track-cover"
-                          />
-                        </td>
-                        <td className="track-title">
-                          <span className="track-name">{track.name}</span>
-                        </td>
-                        <td className="track-album">
-                          {" "}
-                          <span className="track-name">
-                            {Array.isArray(singer) &&
-                              singer.find((s) => s.id == track.userId)
-                                ?.userName}
-                          </span>
-                        </td>
-                        <td className="track-duration">
-                          {formatTime(track.duration)}
-                        </td>
-                        <td>
-                          <audio
-                            style={{ display: "none" }}
-                            ref={(el) => (audioRefs.current[track.id] = el)}
-                            src={track.audioUrl}
-                            onLoadedMetadata={() =>
-                              handleMetadataLoaded(
-                                track.id,
-                                audioRefs.current[track.id].duration
-                              )
-                            }
-                            controls
-                          />
-                        </td>
-                        <td>
-                          <button
-                            style={{
-                              padding: "0",
-                              backgroundColor: "transparent",
-                              border: 0,
-                            }}
-                            onClick={() =>
-                              setShowPlaylistInput((prevState) => ({
-                                ...prevState,
-                                [track.id]: !prevState[track.id],
-                              }))
-                            }
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="17"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="feather feather-playlist-plus"
-                            >
-                              <path d="M3 4h10"></path>
-                              <path d="M3 8h10"></path>
-                              <path d="M3 12h6"></path>
-                              <path d="M16 7v6"></path>
-                              <path d="M13 10h6"></path>
-                            </svg>
-                          </button>
-                          {showPlaylistInput[track.id] && (
-                            <div className="playlist-input-wrapper">
-                              <input
-                                type="text"
-                                placeholder="Enter playlist name..."
-                                value={playlistNames[track.id] || ""}
-                                onChange={(e) =>
-                                  setPlaylistNames((prevState) => ({
-                                    ...prevState,
-                                    [track.id]: e.target.value,
-                                  }))
-                                }
-                                className="playlist-input"
-                              />
-                              <button
-                                onClick={() => addPlaylist(track.id)}
-                                className="playlist-add-button"
-                              >
-                                Add
-                              </button>
-                            </div>
-                          )}
-                        </td>
+                {loadSearch ? (
+                  <div>
+                    <img src="/loading.gif" alt="Loading" />
+                  </div>
+                ) : (
+                  <table className="track-table">
+                    <thead>
+                      <tr>
+                        <th className="track-number">#</th>
+                        <th className="track-title">Cover</th>
+                        <th className="track-album">Track Name</th>
+                        <th className="track-album">Singer Name</th>
+                        <th className="track-duration">
+                          <Clock size={16} />
+                        </th>
+                        <th></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {searchedAudio.map((track, index) => (
+                        <tr
+                          key={track.id}
+                          className={
+                            currentSongId === track.id ? "active-song" : ""
+                          }
+                          // onClick={() => playSong(index)}
+                        >
+                          <td style={{ padding: "0", verticalAlign: "top" }}>
+                            <button
+                              className="play-button"
+                              style={{ margin: "0" }}
+                              onClick={() => playSong(track.id)}
+                            >
+                              {currentSongId === track.id && isPlaying ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <rect
+                                    x="6"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                  <rect
+                                    x="14"
+                                    y="4"
+                                    width="4"
+                                    height="16"
+                                  ></rect>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                              )}
+                            </button>
+                          </td>
+                          <td>
+                            {" "}
+                            <img
+                              src={track.imageUrl || "/placeholder.svg"}
+                              alt={track.title}
+                              className="track-cover"
+                            />
+                          </td>
+                          <td className="track-title">
+                            <span className="track-name">{track.name}</span>
+                          </td>
+                          <td className="track-album">
+                            {" "}
+                            <span className="track-name">
+                              {Array.isArray(singer) &&
+                                singer.find((s) => s.id == track.userId)
+                                  ?.userName}
+                            </span>
+                          </td>
+                          <td className="track-duration">
+                            {formatTime(track.duration)}
+                          </td>
+                          <td>
+                            <audio
+                              style={{ display: "none" }}
+                              ref={(el) => (audioRefs.current[track.id] = el)}
+                              src={track.audioUrl}
+                              onLoadedMetadata={() =>
+                                handleMetadataLoaded(
+                                  track.id,
+                                  audioRefs.current[track.id].duration
+                                )
+                              }
+                              controls
+                            />
+                          </td>
+                          <td>
+                            <button
+                              style={{
+                                padding: "0",
+                                backgroundColor: "transparent",
+                                border: 0,
+                              }}
+                              onClick={() =>
+                                setShowPlaylistInput((prevState) => ({
+                                  ...prevState,
+                                  [track.id]: !prevState[track.id],
+                                }))
+                              }
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="17"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="feather feather-playlist-plus"
+                              >
+                                <path d="M3 4h10"></path>
+                                <path d="M3 8h10"></path>
+                                <path d="M3 12h6"></path>
+                                <path d="M16 7v6"></path>
+                                <path d="M13 10h6"></path>
+                              </svg>
+                            </button>
+                            {showPlaylistInput[track.id] && (
+                              <div className="playlist-input-wrapper">
+                                <input
+                                  type="text"
+                                  placeholder="Enter playlist name..."
+                                  value={playlistNames[track.id] || ""}
+                                  onChange={(e) =>
+                                    setPlaylistNames((prevState) => ({
+                                      ...prevState,
+                                      [track.id]: e.target.value,
+                                    }))
+                                  }
+                                  className="playlist-input"
+                                />
+                                <button
+                                  onClick={() => addPlaylist(track.id)}
+                                  className="playlist-add-button"
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </section>
           )}
