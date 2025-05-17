@@ -469,20 +469,7 @@ export default function Register() {
                         <span className="role-text">Artist</span>
                       </label>
                     </div>
-                    <div className="role-radio">
-                      <input
-                        type="radio"
-                        id="role-admin"
-                        className="role-input"
-                        checked={role === "admin"}
-                        onChange={() => handleRoleChange("admin")}
-                        name="role"
-                      />
-                      <label htmlFor="role-admin" className="role-label">
-                        <span className="role-radio-custom"></span>
-                        <span className="role-text">Admin</span>
-                      </label>
-                    </div>
+                 
                   </div>
                 </div>
 
