@@ -498,7 +498,7 @@ export default function Artist() {
         <nav className="navbar">
           <div className="logo-container">
             <h1 className="logo" onClick={() => navigate("/")}>
-              Spotify
+              Melodify
             </h1>
           </div>
           <div className="auth-buttons">
